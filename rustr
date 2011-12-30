@@ -1,0 +1,23 @@
+#!/bin/bash
+# runrust: compile and run rust source code
+#
+# Kevin Cantu (c) 2011 ==> free use and modification, no warranty, enjoy!
+
+if [[ ! "${1#*.}" == "rs" ]]
+then 
+   ME="$(basename "$0")"
+   echo "Usage: $ME rust-source-file.rs"
+   exit 1
+fi
+
+TORUN="$(mktemp -t runrust.XXXXXXXXXX)"
+
+SOURCE="$1"
+shift 1
+
+rustc -g -o "$TORUN" "$SOURCE" \
+   && echo -e -n "running $TORUN...\n\n" \
+   && exec "$TORUN" $@
+
+# note: exec makes error messages logical, but will litter temp with binaries
+
