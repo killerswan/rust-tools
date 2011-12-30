@@ -1,20 +1,7 @@
 *.swp
 *.exe
 *~
-*.hi
 *.o
 *.tmp
-*.scc
-*.png
-*.svg
-*.hp
-*.prof
-*.aux
-*.ps
-*.pdf
-*.eventlog
-dist/
-cabal-dev/
 
-*.token
 
