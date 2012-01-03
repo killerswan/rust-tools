@@ -6,9 +6,7 @@ use std;
 fn windowed <copy TT> (nn: uint, xx: [TT]) -> [[TT]] {
    let ww = [];
 
-   if nn < 1u {
-      fail "windowed: n should be >= 1";
-   }
+   assert 1u <= nn;
 
    vec::iteri (xx, {|ii, _x|
       let len = vec::len(xx);
@@ -44,5 +42,41 @@ fn windowed_test_0of6 () {
 fn windowed_test_7of6 () {
    assert [] == windowed (7u, [1u,2u,3u,4u,5u,6u]);
 }
+
+fn splitAt <copy TT> (nn: uint, xx: [TT]) -> ([TT],[TT]) {
+   assert 0u <= nn;
+   assert nn <= vec::len(xx);
+   (vec::slice(xx,0u,nn), vec::slice(xx,nn,vec::len(xx)))
+}
+
+#[test]
+fn splitAt_test_a () {
+   let temp: ([u8],[u8]) = splitAt(0u, []);
+   assert ([],[]) == temp;
+}
+
+#[test]
+fn splitAt_test_b () {
+   assert ([],[1u]) == splitAt(0u, [1u]);
+}
+
+#[test]
+fn splitAt_test_c () {
+   assert ([1u],[]) == splitAt(1u, [1u]);
+}
+
+#[test]
+#[should_fail]
+fn splitAt_test_d () {
+   let temp: ([u8],[u8]) = splitAt(7u, []);
+   assert ([],[]) == temp;
+}
+
+
+fn take <copy TT> (nn: uint, xx: [TT]) -> [TT] {
+   ret vec::slice (xx, 0u, nn);
+}
+   
+
 
 
