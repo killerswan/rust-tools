@@ -15,8 +15,8 @@ TORUN="$(mktemp -t runrust.XXXXXXXXXX)"
 SOURCE="$1"
 shift 1
 
+#   && echo -e -n "running $TORUN...\n\n" \
 rustc -g -o "$TORUN" "$SOURCE" \
-   && echo -e -n "running $TORUN...\n\n" \
    && exec "$TORUN" $@
 
 # note: exec makes error messages logical, but will litter temp with binaries
