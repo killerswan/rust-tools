@@ -74,8 +74,57 @@ fn splitAt_test_d () {
 
 
 fn take <copy TT> (nn: uint, xx: [TT]) -> [TT] {
+   assert nn < vec::len(xx);
    ret vec::slice (xx, 0u, nn);
 }
+
+#[test]
+fn take_test_a () {
+   assert [] == take(0u, [8u,9u]);
+}
+
+#[test]
+#[should_fail]
+fn take_test_b () {
+   let _xyz = take(6u, [8u,9u]);
+}
+
+
+// given a function to stringify an element
+// make a pretty string of a vector
+fn show <copy TT> ( vv: [TT],
+                    showTT: block(TT)->str ) -> str {
+
+   let strings = vec::map (vv, showTT);
+
+   check vec::is_not_empty(strings);  // satisfy the typesystem
+
+   let with_commas = vec::foldl ( vec::head(strings),
+                                  vec::tail(strings),
+                                  {|w,s| w + "," + s});
+
+   ret "[" + with_commas + "]";
+}
+
+#[test]
+fn show_test_a () {
+   assert "[3,56,62,2,4]"
+         == show ([3u,56u,62u,2u,4u], {|x| #fmt("%u", x)});
+}
+
+#[test]
+fn show_test_b () {
+   let vv   =  [[ "abc",  "def",  "ghi" ],[ "jkl",  "mno" ]];
+   let ref  = "[[\"abc\",\"def\",\"ghi\"],[\"jkl\",\"mno\"]]";
+
+   // this is a bit fragile, but works ok for now...
+   let test = show (vv, {|xs|
+                 show (xs, {|x| "\"" + x + "\"" })
+              });
+
+   assert ref == test;
+}
+
    
 
 
