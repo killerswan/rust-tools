@@ -89,6 +89,23 @@ fn take_test_b () {
    let _xyz = take(6u, [8u,9u]);
 }
 
+// insert a str between elements of [str]
+// then concatenate them all
+fn intercalate (sep: str, xs: [str]) -> str {
+   check vec::is_not_empty(xs);
+
+   ret vec::foldl ( vec::head(xs),
+                    vec::tail(xs),
+                    {|acc,s| acc + sep + s});
+} 
+
+
+#[test]
+fn intercalate_test_a () {
+   let vv   =  ["abc","def","ghi","jkl","mno"];
+   assert "abcXXdefXXghiXXjklXXmno" == intercalate("XX", vv);
+}
+
 
 // given a function to stringify an element
 // make a pretty string of a vector
@@ -97,25 +114,20 @@ fn show <copy TT> ( vv: [TT],
 
    let strings = vec::map (vv, showTT);
 
-   check vec::is_not_empty(strings);  // satisfy the typesystem
 
-   let with_commas = vec::foldl ( vec::head(strings),
-                                  vec::tail(strings),
-                                  {|w,s| w + "," + s});
-
-   ret "[" + with_commas + "]";
+   ret "[" + intercalate(", ", strings) + "]";
 }
 
 #[test]
 fn show_test_a () {
-   assert "[3,56,62,2,4]"
+   assert "[3, 56, 62, 2, 4]"
          == show ([3u,56u,62u,2u,4u], {|x| #fmt("%u", x)});
 }
 
 #[test]
 fn show_test_b () {
    let vv   =  [[ "abc",  "def",  "ghi" ],[ "jkl",  "mno" ]];
-   let ref  = "[[\"abc\",\"def\",\"ghi\"],[\"jkl\",\"mno\"]]";
+   let ref  = "[[\"abc\", \"def\", \"ghi\"], [\"jkl\", \"mno\"]]";
 
    // this is a bit fragile, but works ok for now...
    let test = show (vv, {|xs|
