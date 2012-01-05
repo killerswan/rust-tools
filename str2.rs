@@ -5,7 +5,6 @@
    splitfn
    lines
    words
-   intercalate
 */
 
 use std;
@@ -81,22 +80,6 @@ fn test_example () {
      //std::io::println(#fmt("%c",ch));
      i = next;
    }
-}
-
-// insert a str between elements of [str]
-// then concatenate them all
-fn intercalate (sep: str, xs: [str]) -> str {
-   check vec::is_not_empty(xs);
-
-   ret vec::foldl ( vec::head(xs),
-                    vec::tail(xs),
-                    {|acc,s| acc + sep + s});
-} 
-
-#[test]
-fn intercalate_test_a () {
-   let vv   =  ["abc","def","ghi","jkl","mno"];
-   assert "abcXXdefXXghiXXjklXXmno" == intercalate("XX", vv);
 }
 
 
