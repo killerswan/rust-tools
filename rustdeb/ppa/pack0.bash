@@ -10,15 +10,15 @@ else
 fi
 
 # rust source
-git clone https://github.com/graydon/rust rust_${VERSION}
-
-# llvm and libuv source
-cd rust_${VERSION}
-git submodule init
-git submodule update
+git clone https://github.com/graydon/rust rust
 
 # just to be sure
 #git reset --hard d2218d9c9cb4cbd28e3de44c152f1b270f185e58
 git reset --hard ${HASH}
+
+# llvm and libuv source
+cd rust
+git submodule init
+git submodule update
 
 

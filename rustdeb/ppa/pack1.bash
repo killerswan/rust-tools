@@ -10,7 +10,7 @@ else
 fi
 
 # stage0 binaries
-cd rust_${VERSION}
+cd rust
 CFG_SRC_DIR="$(pwd)"
 export CFG_SRC_DIR
 SNAPSHOTDIR="$(pwd)/src/etc"
@@ -20,6 +20,10 @@ python ../latest-snapshots.py
 
 # source archive
 cd ..
-tar -cvz --exclude-vcs -f rust_${VERSION}.orig.tar.gz rust_${VERSION}
+tar -cvz --exclude-vcs -f rust_${VERSION}.orig.tar.gz rust
+mkdir pkg
+cd pkg
+tar -xzf ../rust_${VERSION}.orig.tar.gz
+mv rust rust-${VERSION}
 
 
