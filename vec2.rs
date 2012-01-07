@@ -98,7 +98,7 @@ fn show <copy TT> ( vv: [TT],
    let strings = vec::map (vv, showTT);
 
 
-   ret "[" + str2::intercalate(", ", strings) + "]";
+   ret "[" + str::connect(strings, ", ") + "]";
 }
 
 #[test]
