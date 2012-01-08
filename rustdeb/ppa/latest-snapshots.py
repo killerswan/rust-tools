@@ -41,10 +41,12 @@ for line in f.readlines():
             addingMode = False
 
     elif addingMode == True and parsed["type"] == "file":
-        ff = {}
-        ff["platform"] = parsed["platform"]
-        ff["hash"] = parsed["hash"]
-        newestSet["files"] += [ff]
+        tux = re.compile("linux", re.IGNORECASE)
+        if (tux.match(parsed["platform"]) != None):
+           ff = {}
+           ff["platform"] = parsed["platform"]
+           ff["hash"] = parsed["hash"]
+           newestSet["files"] += [ff]
 
 
 def download_new_file (date, rev, platform, hsh):

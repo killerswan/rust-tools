@@ -5,8 +5,8 @@ then
    echo "Usage: $(basename "$0") HASH REL_VERSION"
    exit 1
 else
-   HASH="$1"
-   VERSION="$2"
+   VERSION="$1"
+   HASH="$2"
 fi
 
 # stage0 binaries
@@ -19,11 +19,14 @@ mkdir dl
 python ../latest-snapshots.py
 
 # source archive
+PKGDIR=pkg
+ORIG=rust_${VERSION}.orig.tar.gz
 cd ..
-tar -cvz --exclude-vcs -f rust_${VERSION}.orig.tar.gz rust
-mkdir pkg
-cd pkg
-tar -xzf ../rust_${VERSION}.orig.tar.gz
+mkdir ${PKGDIR}
+tar -cvz --exclude-vcs -f ${PKGDIR}/${ORIG} rust
+
+cd ${PKGDIR}
+tar -xzf ${ORIG}
 mv rust rust-${VERSION}
 
 
