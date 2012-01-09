@@ -1,0 +1,16 @@
+To build the version 0.091 Rust PPA, I had to modify the following files
+so that they supported DESTDIR instead of CFG_PREFIX:
+ * configure
+ * Makefile.in
+ * src/comp/back/rpath.rs
+ * mk/install.mk
+
+The changes I made seemed like a hack: there's got to be a better way,
+but I don't yet know enough about the Rust makefiles to be ready to
+permanently resolve this otherwise.
+
+But it works this way, and I've tested the PPA on my laptop (amd64).
+
+-- Kevin, Jan 8
+
+
