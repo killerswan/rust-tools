@@ -4,7 +4,7 @@
 use std;
 use str2;
 
-fn windowed <copy TT> (nn: uint, xx: [TT]) -> [[TT]] {
+fn windowed <TT: copy> (nn: uint, xx: [TT]) -> [[TT]] {
    let ww = [];
 
    assert 1u <= nn;
@@ -44,7 +44,7 @@ fn windowed_test_7of6 () {
    assert [] == windowed (7u, [1u,2u,3u,4u,5u,6u]);
 }
 
-fn splitAt <copy TT> (nn: uint, xx: [TT]) -> ([TT],[TT]) {
+fn splitAt <TT: copy> (nn: uint, xx: [TT]) -> ([TT],[TT]) {
    assert 0u <= nn;
    assert nn <= vec::len(xx);
    (vec::slice(xx,0u,nn), vec::slice(xx,nn,vec::len(xx)))
@@ -74,7 +74,7 @@ fn splitAt_test_d () {
 }
 
 
-fn take <copy TT> (nn: uint, xx: [TT]) -> [TT] {
+fn take <TT: copy> (nn: uint, xx: [TT]) -> [TT] {
    assert nn < vec::len(xx);
    ret vec::slice (xx, 0u, nn);
 }
@@ -92,7 +92,7 @@ fn take_test_b () {
 
 // given a function to stringify an element
 // make a pretty string of a vector
-fn show <copy TT> ( vv: [TT],
+fn show <TT> ( vv: [TT],
                     showTT: block(TT)->str ) -> str {
 
    let strings = vec::map (vv, showTT);
