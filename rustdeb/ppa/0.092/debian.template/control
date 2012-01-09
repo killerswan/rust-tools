@@ -1,0 +1,15 @@
+Source: #PACKAGE#
+Section: devel
+Priority: extra
+Maintainer: #USERNAME# <#EMAIL#>
+Build-Depends: #BUILD_DEPS# <possibly: debhelper, autotools-dev, curl, python>
+Standards-Version: #POLICY#
+Homepage: http://rust-lang.org
+
+Package: #PACKAGE#
+Architecture: any
+Depends: ${shlibs:Depends}, ${misc:Depends}
+Description: Rust programming language
+ This is a compiler and suite of associated libraries and documentation for the Rust programming language.
+
+
