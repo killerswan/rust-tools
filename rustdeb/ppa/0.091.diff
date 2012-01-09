@@ -1,0 +1,186 @@
+diff -uBr --exclude debian --exclude .pc --exclude intrinsics.ll.bak rust/configure rust-0.091/configure
+--- rust/configure	2012-01-08 05:27:18.000000000 -0800
++++ rust-0.091/configure	2012-01-08 05:45:04.000000000 -0800
+@@ -19,12 +19,6 @@
+     exit 1
+ }
+ 
+-need_ok() {
+-    if [ $? -ne 0 ]
+-    then
+-        err $1
+-    fi
+-}
+ 
+ need_cmd() {
+     if which $1 >/dev/null 2>&1
+@@ -83,6 +77,36 @@
+     fi
+ }
+ 
++valopt_() {
++    local OP=$1
++    local DEFAULT=$2
++    shift
++    shift
++    local DOC="$*"
++    if [ $HELP -eq 0 ]
++    then
++        local UOP=$(echo $OP | tr '[:lower:]' '[:upper:]' | tr '\-' '\_')
++        local V="DESTDIR"
++        eval $V="$DEFAULT"
++        for arg in $CFG_CONFIGURE_ARGS
++        do
++            if echo "$arg" | grep -q -- "--$OP="
++            then
++                val=$(echo "$arg" | cut -f2 -d=)
++                eval $V=$val
++            fi
++        done
++        putvar $V
++    else
++        if [ -z "$DEFAULT" ]
++        then
++            DEFAULT="<none>"
++        fi
++        OP="${OP}=[${DEFAULT}]"
++        printf "    --%-30s %s\n" "$OP" "$DOC"
++    fi
++}
++
+ valopt() {
+     local OP=$1
+     local DEFAULT=$2
+@@ -260,7 +284,7 @@
+ opt manage-submodules 1 "let the build manage the git submodules"
+ opt mingw-cross 0 "cross-compile for win32 using mingw"
+ opt clang 0 "prefer gcc to clang for building the runtime"
+-valopt prefix "/usr/local" "set installation prefix"
++valopt_ prefix "/usr/local" "set installation prefix"
+ valopt llvm-root "" "set LLVM root"
+ valopt host-triple "$DEFAULT_HOST_TRIPLE" "primary LLVM host triple"
+ valopt target-triples "" "LLVM target triples (defaults to host if unset)"
+@@ -336,9 +360,9 @@
+     CFG_C_COMPILER="gcc"
+ fi
+ 
+-if [ -z "$CFG_PREFIX" ]
++if [ -z "$DESTDIR" ]
+ then
+-    CFG_PREFIX=/usr/local
++    DESTDIR=/usr/local
+ fi
+ 
+ if [ -z "$CFG_HOST_TRIPLE" ]
+@@ -428,14 +452,6 @@
+ # Configure submodules
+ step_msg "configuring submodules"
+ 
+-# If we have no git directory then we are probably a tarball distribution
+-# and shouldn't attempt to load submodules
+-if [ ! -e ${CFG_SRC_DIR}.git ]
+-then
+-    msg "git: no git directory. disabling submodules"
+-    CFG_DISABLE_MANAGE_SUBMODULES=1
+-fi
+-
+ # Have to be in the top of src directory for this
+ cd ${CFG_SRC_DIR}
+ 
+@@ -455,14 +471,12 @@
+ then
+     msg "git: submodule init"
+     "${CFG_GIT}" submodule init --quiet
+-    need_ok "git failed"
+ fi
+ 
+ if [ $NEED_UPDATE ]
+ then
+     msg "git: submodule update"
+     "${CFG_GIT}" submodule update --quiet
+-    need_ok "git failed"
+ fi
+ 
+ cd ${CFG_BUILD_DIR}
+@@ -550,7 +564,6 @@
+ 		${CFG_BUILD_DIR}/${CFG_LLVM_SRC_DIR}/configure $LLVM_FLAGS
+ 		;;
+ 	esac
+-    need_ok "LLVM configure failed"
+ 	cd $CFG_BUILD_DIR
+     else
+ 	LLVM_BUILD_DIR=
+@@ -581,13 +594,7 @@
+ putvar CFG_HOST_TRIPLE
+ putvar CFG_TARGET_TRIPLES
+ putvar CFG_C_COMPILER
+-putvar CFG_PREFIX
+-
+-# Setting this again because it may have been changed
+-if [ $CFG_DISABLE_MANAGE_SUBMODULES ]
+-then
+-    putvar CFG_DISABLE_MANAGE_SUBMODULES
+-fi
++putvar DESTDIR
+ 
+ if head -n 1 ${CFG_SRC_DIR}src/snapshots.txt | grep -q '^T'
+ then
+diff -uBr --exclude debian --exclude .pc --exclude intrinsics.ll.bak rust/Makefile.in rust-0.091/Makefile.in
+--- rust/Makefile.in	2012-01-08 05:27:18.000000000 -0800
++++ rust-0.091/Makefile.in	2012-01-08 05:45:04.000000000 -0800
+@@ -262,6 +262,7 @@
+ export CFG_LLVM_ROOT
+ export CFG_ENABLE_MINGW_CROSS
+ export CFG_PREFIX
++export DESTDIR
+ 
+ ######################################################################
+ # Subprograms
+diff -uBr --exclude debian --exclude .pc --exclude intrinsics.ll.bak rust/mk/install.mk rust-0.091/mk/install.mk
+--- rust/mk/install.mk	2012-01-08 05:27:18.000000000 -0800
++++ rust-0.091/mk/install.mk	2012-01-08 05:45:04.000000000 -0800
+@@ -16,7 +16,7 @@
+ # The stage we install from
+ ISTAGE = 3
+ 
+-PREFIX_ROOT = $(CFG_PREFIX)
++PREFIX_ROOT = $(DESTDIR)
+ PREFIX_BIN = $(PREFIX_ROOT)/bin
+ PREFIX_LIB = $(PREFIX_ROOT)/lib
+ 
+diff -uBr --exclude debian --exclude .pc --exclude intrinsics.ll.bak rust/src/comp/back/rpath.rs rust-0.091/src/comp/back/rpath.rs
+--- rust/src/comp/back/rpath.rs	2012-01-08 05:27:18.000000000 -0800
++++ rust-0.091/src/comp/back/rpath.rs	2012-01-08 05:45:04.000000000 -0800
+@@ -9,7 +9,9 @@
+ import driver::session;
+ import util::filesearch;
+ 
+-export get_rpath_flags;
++// FIXME #721: Despite the compiler warning, test does exist and needs
++// to be exported
++export get_rpath_flags, test;
+ 
+ fn get_rpath_flags(sess: session::session, out_filename: str) -> [str] {
+     let os = sess.get_targ_cfg().os;
+@@ -164,10 +166,10 @@
+ }
+ 
+ fn get_install_prefix_rpath(cwd: fs::path, target_triple: str) -> str {
+-    let install_prefix = #env("CFG_PREFIX");
++    let install_prefix = #env("DESTDIR");
+ 
+     if install_prefix == "" {
+-        fail "rustc compiled without CFG_PREFIX environment variable";
++        fail "rustc compiled without DESTDIR environment variable";
+     }
+ 
+     let path = [install_prefix]
+@@ -218,7 +220,7 @@
+     #[test]
+     fn test_prefix_rpath() {
+         let res = get_install_prefix_rpath("/usr/lib", "triple");
+-        assert str::ends_with(res, #env("CFG_PREFIX")
++        assert str::ends_with(res, #env("DESTDIR")
+                               + "/lib/rustc/triple/lib");
+     }
+ 
