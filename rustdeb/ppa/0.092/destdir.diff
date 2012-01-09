@@ -1,0 +1,119 @@
+diff -uBr rust-0.092/configure rust-patched/configure
+--- rust-0.092/configure	2012-01-09 01:33:04.000000000 -0800
++++ rust-patched/configure	2012-01-09 01:57:03.868302671 -0800
+@@ -83,6 +83,36 @@
+     fi
+ }
+ 
++valopt_() {
++    local OP=$1
++    local DEFAULT=$2
++    shift
++    shift
++    local DOC="$*"
++    if [ $HELP -eq 0 ]
++    then
++        local UOP=$(echo $OP | tr '[:lower:]' '[:upper:]' | tr '\-' '\_')
++        local V="DESTDIR"
++        eval $V="$DEFAULT"
++        for arg in $CFG_CONFIGURE_ARGS
++        do
++            if echo "$arg" | grep -q -- "--$OP="
++            then
++                val=$(echo "$arg" | cut -f2 -d=)
++                eval $V=$val
++            fi
++        done
++        putvar $V
++    else
++        if [ -z "$DEFAULT" ]
++        then
++            DEFAULT="<none>"
++        fi
++        OP="${OP}=[${DEFAULT}]"
++        printf "    --%-30s %s\n" "$OP" "$DOC"
++    fi
++}
++
+ valopt() {
+     local OP=$1
+     local DEFAULT=$2
+@@ -260,7 +290,7 @@
+ opt manage-submodules 1 "let the build manage the git submodules"
+ opt mingw-cross 0 "cross-compile for win32 using mingw"
+ opt clang 0 "prefer gcc to clang for building the runtime"
+-valopt prefix "/usr/local" "set installation prefix"
++valopt_ prefix "/usr/local" "set installation prefix"
+ valopt llvm-root "" "set LLVM root"
+ valopt host-triple "$DEFAULT_HOST_TRIPLE" "primary LLVM host triple"
+ valopt target-triples "" "LLVM target triples (defaults to host if unset)"
+@@ -336,9 +366,9 @@
+     CFG_C_COMPILER="gcc"
+ fi
+ 
+-if [ -z "$CFG_PREFIX" ]
++if [ -z "$DESTDIR" ]
+ then
+-    CFG_PREFIX=/usr/local
++    DESTDIR=/usr/local
+ fi
+ 
+ if [ -z "$CFG_HOST_TRIPLE" ]
+@@ -581,7 +611,7 @@
+ putvar CFG_HOST_TRIPLE
+ putvar CFG_TARGET_TRIPLES
+ putvar CFG_C_COMPILER
+-putvar CFG_PREFIX
++putvar DESTDIR
+ 
+ # Setting this again because it may have been changed
+ if [ $CFG_DISABLE_MANAGE_SUBMODULES ]
+diff -uBr rust-0.092/Makefile.in rust-patched/Makefile.in
+--- rust-0.092/Makefile.in	2012-01-09 01:33:04.000000000 -0800
++++ rust-patched/Makefile.in	2012-01-09 01:57:21.488302681 -0800
+@@ -261,7 +261,7 @@
+ export CFG_HOST_TRIPLE
+ export CFG_LLVM_ROOT
+ export CFG_ENABLE_MINGW_CROSS
+-export CFG_PREFIX
++export DESTDIR
+ 
+ ######################################################################
+ # Subprograms
+diff -uBr rust-0.092/mk/install.mk rust-patched/mk/install.mk
+--- rust-0.092/mk/install.mk	2012-01-09 01:33:04.000000000 -0800
++++ rust-patched/mk/install.mk	2012-01-09 01:57:39.338302684 -0800
+@@ -16,7 +16,7 @@
+ # The stage we install from
+ ISTAGE = 3
+ 
+-PREFIX_ROOT = $(CFG_PREFIX)
++PREFIX_ROOT = $(DESTDIR)
+ PREFIX_BIN = $(PREFIX_ROOT)/bin
+ PREFIX_LIB = $(PREFIX_ROOT)/lib
+ 
+diff -uBr rust-0.092/src/comp/back/rpath.rs rust-patched/src/comp/back/rpath.rs
+--- rust-0.092/src/comp/back/rpath.rs	2012-01-09 01:33:04.000000000 -0800
++++ rust-patched/src/comp/back/rpath.rs	2012-01-09 01:58:34.578302701 -0800
+@@ -164,10 +164,10 @@
+ }
+ 
+ fn get_install_prefix_rpath(cwd: fs::path, target_triple: str) -> str {
+-    let install_prefix = #env("CFG_PREFIX");
++    let install_prefix = #env("DESTDIR");
+ 
+     if install_prefix == "" {
+-        fail "rustc compiled without CFG_PREFIX environment variable";
++        fail "rustc compiled without DESTDIR environment variable";
+     }
+ 
+     let path = [install_prefix]
+@@ -218,7 +218,7 @@
+     #[test]
+     fn test_prefix_rpath() {
+         let res = get_install_prefix_rpath("/usr/lib", "triple");
+-        assert str::ends_with(res, #env("CFG_PREFIX")
++        assert str::ends_with(res, #env("DESTDIR")
+                               + "/lib/rustc/triple/lib");
+     }
+ 

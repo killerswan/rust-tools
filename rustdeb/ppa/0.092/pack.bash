@@ -17,6 +17,7 @@ then
 else
    VERSION="$1"
    COMMIT="$2"
+   HERE="$(cd "$(dirname "$0")"; pwd)"
 fi
 
 
@@ -41,12 +42,12 @@ SNAPSHOTDIR="$(pwd)/src/etc"
 export CFG_SRC_DIR
 export SNAPSHOTDIR
 mkdir dl
-python ../latest-snapshots.py
+python ${HERE}/latest-snapshots.py
 
 # original source archive
 PKGDIR=pkg
 ORIG=rust_${VERSION}.orig.tar.gz
-cd ..
+cd ${HERE}
 mkdir ${PKGDIR}
 tar -cvz --exclude-vcs -f ${PKGDIR}/${ORIG} rust
 
@@ -59,14 +60,13 @@ cd ${PKGDIR}
 tar -xzf ${ORIG}
 mv rust rust-${VERSION}
 
-# modify original source
-cd rust-${VERSION}
-
 # init package
+cd rust-${VERSION}
+mkdir debian
 DEBFULLNAME="Kevin Cantu"
 dh_make --email me@kevincantu.org \
         --single \
-        --overlay debian.template
+        --overlay ${HERE}/deb-templ
 
 gvim --nofork debian/control   # eyeball dependencies
 gvim --nofork debian/changelog # comment on changes
@@ -87,7 +87,7 @@ echo "test binary package creation locally:"
 echo "$ sudo pbuilder build ../rust_VERSION.dsc"
 echo ""
 echo "upload:"
-echo "$ dput ppa:kevincantu/rust rust_VERSION_source.changes
+echo "$ dput ppa:kevincantu/rust rust_VERSION_source.changes"
 echo ""
 echo "###########################################################"
 
