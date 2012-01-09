@@ -14,3 +14,6 @@ But it works this way, and I've tested the PPA on my laptop (amd64).
 -- Kevin, Jan 8
 
 
+(Note, the diff here seems to have some extra clutter.  I'd already done the patching manually, before signing, etc.)
+
+
