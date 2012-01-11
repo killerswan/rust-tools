@@ -1,6 +1,7 @@
 // Kevin Cantu
 // additional vector functions
 
+#[link(name = "vec2", author = "kcantu", vers = "0.0")];
 use std;
 use str2;
 
@@ -121,6 +122,90 @@ fn show_test_b () {
 }
 
    
+// system dependent
+fn u8to32 (aa: [u8]) -> [u32] unsafe {
+   assert vec::len(aa) % 4u == 0u;
+   let len = vec::len(aa) / 4u;
+
+   let bb: *u8 = vec::unsafe::to_ptr(aa);
+   let cc: *u32 = unsafe::reinterpret_cast(bb);
+   let dd: [u32] = vec::unsafe::from_buf(cc, len);
+   ret dd;
+}
+
+// system dependent
+fn u8to64 (aa: [u8]) -> [u64] unsafe {
+   assert vec::len(aa) % 8u == 0u;
+   let len = vec::len(aa) / 8u;
+
+   let bb: *u8 = vec::unsafe::to_ptr(aa);
+   let cc: *u64 = unsafe::reinterpret_cast(bb);
+   let dd: [u64] = vec::unsafe::from_buf(cc, len);
+   ret dd;
+}
+
+
+#[test]
+fn amd64_casting_test_32 () {
+   let aa: [u8] = [1u8, 2u8,3u8,4u8, 5u8,6u8,7u8,8u8];
+   let bb = u8to32(aa);
+
+   assert [0x_04030201_u32, 0x_08070605_u32] == bb;
+}
+
+#[test]
+fn amd64_casting_test_64 () {
+   let aa: [u8] = [1u8, 2u8,3u8,4u8, 5u8,6u8,7u8,8u8];
+   let bb: [u64] = u8to64(aa);
+
+   //std::io::println(#fmt("0x_%016x", bb[0]));
+   assert [0x_08070605_04030201_u64] == bb;
+}
+
+#[test]
+fn amd64_casting_test_64_nil () {
+   let aa: [u8] = [];
+   let bb: [u64] = u8to64(aa);
+
+   assert [] == bb;
+}
+
+#[test]
+fn amd64_casting_test_32_nil () {
+   let aa: [u8] = [];
+   let bb: [u32] = u8to32(aa);
+
+   assert [] == bb;
+}
+
+#[test]
+#[should_fail]
+fn amd64_casting_test_64_too_long () {
+   let aa: [u8] = [1u8,2u8,3u8,4u8, 5u8,6u8,7u8,8u8, 9u8];
+   let _bb: [u64] = u8to64(aa);
+}
+
+#[test]
+#[should_fail]
+fn amd64_casting_test_64_too_short () {
+   let aa: [u8] = [1u8,2u8,3u8,4u8, 5u8,6u8,7u8 ];
+   let _bb: [u64] = u8to64(aa);
+}
+
+#[test]
+#[should_fail]
+fn amd64_casting_test_32_too_long () {
+   let aa: [u8] = [1u8,2u8,3u8,4u8, 5u8,6u8,7u8,8u8, 9u8];
+   let _bb: [u32] = u8to32(aa);
+}
+
+#[test]
+#[should_fail]
+fn amd64_casting_test_32_too_short () {
+   let aa: [u8] = [1u8,2u8,3u8,4u8, 5u8,6u8,7u8 ];
+   let _bb: [u32] = u8to32(aa);
+}
+
 
 
 

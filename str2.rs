@@ -7,6 +7,7 @@
    words
 */
 
+#[link(name = "str2", author = "kcantu", vers = "0.0")];
 use std;
 
 // a more general split
