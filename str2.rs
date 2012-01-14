@@ -81,11 +81,8 @@ fn test_example ()
    let i = 0u;
    while i < str::char_len(s)
    {
-
-     let {ch, next} = str::char_range_at(s, i);
-     let _ignore = ch;
-
-     i = next;
+      let {ch:_, next:j} = str::char_range_at(s, i);
+      i = j;
    }
 }
 
