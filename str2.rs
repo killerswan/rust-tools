@@ -85,20 +85,20 @@ fn test_slice() {
 
 #[test]
 fn test_slice_with_unicode() {
-    fn a_million_letter_华() -> str {
+    fn a_million_letter_X() -> str {
         let i = 0;
         let rs = "";
         while i < 100000 { rs += "华华华华华华华华华华"; i += 1; }
         ret rs;
     }
-    fn half_a_million_letter_华() -> str {
+    fn half_a_million_letter_X() -> str {
         let i = 0;
         let rs = "";
         while i < 100000 { rs += "华华华华华"; i += 1; }
         ret rs;
     }
-    assert (str::eq(half_a_million_letter_华(),
-                    slice_chars(a_million_letter_华(), 0u, 500000u)));
+    assert (str::eq(half_a_million_letter_X(),
+                    slice_chars(a_million_letter_X(), 0u, 500000u)));
 }
 
 #[test]
