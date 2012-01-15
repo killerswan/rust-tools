@@ -19,15 +19,21 @@ use std;
 // Does not make internal conversion to char (which is UTF-32/UCS-4),
 // but is UTF-8 aware.
 //
+
+// helper: note, slice_chars could be faster (by not starting byte_position from zero the second time)
+// if this was a named block internal to slice_chars
 fn byte_position (&&ss: str, char_position: uint) -> uint
 {
    let cursor_char = 0u;
    let cursor_byte = 0u;
-   
+
    while cursor_char < char_position {
-      cursor_byte += str::utf8_char_width(ss[cursor_byte]);
+      let sz = str::utf8_char_width(ss[cursor_byte]);
+      assert (sz > 0u);
+      cursor_byte += sz;
       cursor_char += 1u;
    }
+   assert cursor_byte == str::byte_len(ss);
    ret cursor_char;
 }
 
