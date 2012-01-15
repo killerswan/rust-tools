@@ -83,6 +83,35 @@ fn test_slice() {
                     slice_chars(a_million_letter_a(), 0u, 500000u)));
 }
 
+#[test]
+fn test_slice_with_unicode() {
+    fn a_million_letter_华() -> str {
+        let i = 0;
+        let rs = "";
+        while i < 100000 { rs += "华华华华华华华华华华"; i += 1; }
+        ret rs;
+    }
+    fn half_a_million_letter_华() -> str {
+        let i = 0;
+        let rs = "";
+        while i < 100000 { rs += "华华华华华"; i += 1; }
+        ret rs;
+    }
+    assert (str::eq(half_a_million_letter_华(),
+                    slice_chars(a_million_letter_华(), 0u, 500000u)));
+}
+
+#[test]
+fn equals_unicode() {
+   let data = "ประเทศไทย中华Việt Nam";
+   let data2 = "ประเทศไทย中华Việt Nam";
+   assert str::eq(data,data2);
+
+   assert str::eq("华", "华");
+   assert str::eq("华华", "华华");
+}
+
+
 // a more general split, unicode safe
 // using a function, e.g., char::is_whitespace instead of single u8
 fn splitfn(ss: str, sepf: fn&(cc: char)->bool) -> [str]
