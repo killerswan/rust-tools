@@ -29,28 +29,30 @@ fn byte_position (&&ss: str, char_position: uint) -> uint
 
    while cursor_char < char_position {
       let sz = str::utf8_char_width(ss[cursor_byte]);
-      assert (sz > 0u);
+      assert sz > 0u;
       cursor_byte += sz;
       cursor_char += 1u;
    }
-   assert cursor_byte == str::byte_len(ss);
+   assert cursor_char <= str::char_len(ss);
    ret cursor_char;
 }
 
-fn slice_chars(ss: str, start: uint, end: uint) -> str unsafe
+fn slice_chars(ss: str, begin: uint, end: uint) -> str unsafe
 {
-   // FIXME: should we make some assertions here?
+   assert begin <= end;
+   assert end <= str::char_len(ss);
 
-   // find the start and end
-   let byte_start = byte_position(ss, start);
-   let byte_end = byte_position(ss, end);
+   // find the begin and end
+   let byte_begin = byte_position(ss, begin);
+   let byte_end   = byte_position(ss, end);
 
    // copy the bytes
    let new_vector = [];
-   let ii = byte_start;
+   let ii = byte_begin;
 
    while ii < byte_end {
       vec::push(new_vector, ss[ii]);
+      ii += 1u;
    }
    vec::push(new_vector, 0u8);
 
@@ -60,6 +62,26 @@ fn slice_chars(ss: str, start: uint, end: uint) -> str unsafe
    ret new_string;
 }
 
+#[test]
+fn test_slice() {
+    assert (str::eq("ab", slice_chars("abc", 0u, 2u)));
+    assert (str::eq("bc", slice_chars("abc", 1u, 3u)));
+    assert (str::eq("", slice_chars("abc", 1u, 1u)));
+    fn a_million_letter_a() -> str {
+        let i = 0;
+        let rs = "";
+        while i < 100000 { rs += "aaaaaaaaaa"; i += 1; }
+        ret rs;
+    }
+    fn half_a_million_letter_a() -> str {
+        let i = 0;
+        let rs = "";
+        while i < 100000 { rs += "aaaaa"; i += 1; }
+        ret rs;
+    }
+    assert (str::eq(half_a_million_letter_a(),
+                    slice_chars(a_million_letter_a(), 0u, 500000u)));
+}
 
 // a more general split, unicode safe
 // using a function, e.g., char::is_whitespace instead of single u8
@@ -126,36 +148,26 @@ fn test_words_splitfn ()
 #[test]
 fn test_example ()
 {
-   let s = "ประเทศไทย中华Việt Nam";
+   let s = "中华Việt Nam";
    let i = 0u;
    while i < str::byte_len(s)
    {
       let {ch:c, next:j} = str::char_range_at(s, i);
       std::io::println(#fmt("%u: %c",i,c));
-      //std::io::println(#fmt("%u: %c (%c)",i,c,s[i] as char)); // note that s[i] is str[uint] -> u8
       i = j;
    }
 
    /* Output: 
-      0: ป
-      3: ร
-      6: ะ
-      9: เ
-      12: ท
-      15: ศ
-      18: ไ
-      21: ท
-      24: ย
-      27: 中
-      30: 华
-      33: V
-      34: i
-      35: ệ
-      38: t
-      39:  
-      40: N
-      41: a
-      42: m
+      0: 中
+      3: 华
+      6: V
+      7: i
+      8: ệ
+      11: t
+      12:  
+      13: N
+      14: a
+      15: m
    */
 }
 
