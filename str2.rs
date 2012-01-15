@@ -34,7 +34,8 @@ fn byte_position (&&ss: str, char_position: uint) -> uint
       cursor_char += 1u;
    }
    assert cursor_char <= str::char_len(ss);
-   ret cursor_char;
+   assert cursor_byte <= str::byte_len(ss);
+   ret cursor_byte;
 }
 
 fn slice_chars(ss: str, begin: uint, end: uint) -> str unsafe
@@ -44,13 +45,16 @@ fn slice_chars(ss: str, begin: uint, end: uint) -> str unsafe
 
    // find the begin and end
    let byte_begin = byte_position(ss, begin);
+//   std::io::println(#fmt("begin: %u", byte_begin));
    let byte_end   = byte_position(ss, end);
+//   std::io::println(#fmt("end: %u", byte_end));
 
    // copy the bytes
    let new_vector = [];
    let ii = byte_begin;
 
    while ii < byte_end {
+//      std::io::println(#fmt("pushing another u8: {%02x}", ss[ii] as uint));
       vec::push(new_vector, ss[ii]);
       ii += 1u;
    }
@@ -84,21 +88,33 @@ fn test_slice() {
 }
 
 #[test]
-fn test_slice_with_unicode() {
+fn test_slice_with_unicode_a() {
+    let data = "ประเทศไทย中华Việt Nam";
+
+    let wtf = slice_chars(data, 0u, 1u);
+    std::io::println(#fmt("WHAT ABOUT: {%02x, %02x, %02x}", wtf[0] as uint, wtf[1] as uint, wtf[2] as uint));
+
+    assert (str::eq("ปร", slice_chars(data, 0u, 2u)));
+    assert (str::eq("ระ", slice_chars(data, 1u, 3u)));
+    assert (str::eq("", slice_chars(data, 1u, 1u)));
+}
+
+#[test]
+fn test_slice_with_unicode_b() {
     fn a_million_letter_X() -> str {
         let i = 0;
         let rs = "";
-        while i < 100000 { rs += "华华华华华华华华华华"; i += 1; }
+        while i < 100 { rs += "华华"; i += 1; }
         ret rs;
     }
     fn half_a_million_letter_X() -> str {
         let i = 0;
         let rs = "";
-        while i < 100000 { rs += "华华华华华"; i += 1; }
+        while i < 100 { rs += "华"; i += 1; }
         ret rs;
     }
     assert (str::eq(half_a_million_letter_X(),
-                    slice_chars(a_million_letter_X(), 0u, 500000u)));
+                    slice_chars(a_million_letter_X(), 0u, 100u)));
 }
 
 #[test]
@@ -182,7 +198,7 @@ fn test_example ()
    while i < str::byte_len(s)
    {
       let {ch:c, next:j} = str::char_range_at(s, i);
-      std::io::println(#fmt("%u: %c",i,c));
+//      std::io::println(#fmt("%u: %c",i,c));
       i = j;
    }
 
