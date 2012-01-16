@@ -8,9 +8,8 @@ Return true if a predicate matches all characters
 
 If the string contains no characters
 */
-fn all<T>(v: [T], f: block(T) -> bool) -> bool {
-    for elem: T in v { if !f(elem) { ret false; } }
-    ret true;
+fn all(ss: str, ff: fn&(char) -> bool) -> bool {
+    str::loop_chars(ss, ff)
 }
 
 
@@ -62,6 +61,15 @@ fn map(ss: str, ff: fn&(char) -> char) -> str {
 fn test_map () {
     assert "" == map("", char::to_upper);
     assert "YMCA" == map("ymca", char::to_upper);
+}
+
+#[test]
+fn test_all () {
+    assert true == all("", char::is_uppercase);
+    assert false == all("ymca", char::is_uppercase);
+    assert true == all("YMCA", char::is_uppercase);
+    assert false == all("yMCA", char::is_uppercase);
+    assert false == all("YMCy", char::is_uppercase);
 }
 
 
