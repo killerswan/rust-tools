@@ -1,0 +1,54 @@
+14:37 < kcantu> Wensley: functions work like this now: 
+                https://raw.github.com/killerswan/rust-tools/master/function-test.rs
+14:38 < Wensley> good to know, but I still don't think I'm quite expert enough to be enumerating the 
+                 differences between those functions in the tutorial.
+14:38 < kcantu> in english, that is, there are four types: native fn, fn~, fn@, and fn&
+14:39 < kcantu> native fn has no closure
+14:39 < kcantu> fn~ has a unique/sendable closure which is immutable
+14:39 < rustbot> snap-stage3 snapshot on slave-windows-amd64-rust-win2: 
+                 rust-stage0-2012-01-14-9e40e43-winnt-i386-a3169060c0179af7dd697e744dac15c5224c1510.tar.bz2
+14:39 < kcantu> fn@ has a boxed closure which is immutable
+14:39 < Wensley> the pointer types are written with preceding sigils like @T, ~T, *T right?
+14:39 < kcantu> fn& has a stack/block closure which is mutable
+14:40 < kcantu> function pointers?
+14:41 < Wensley> I just mean the examples given on this page: 
+                 https://github.com/mozilla/rust/blob/master/doc/tutorial/syntax.md under "Types"
+14:42 < kcantu> i've not messed with those, i don't know.  There's supposed to be some symmetry in the use 
+                of these symbols, so I would assume that @T is a pointer to a boxed thing.
+14:42 < kcantu> etc.
+14:43 < kcantu> But where that page lists function types, it is out of date.
+14:43 < Wensley> yes, I'm going over all the pages in the tutorial fixing any broken links or spelling and 
+                 grammatical errors I find
+14:44 < Wensley> trying to do a little cleanup of anything else if I come across it but I'm not sure I'm 
+                 qualified :)
+14:44 < kcantu> I would list the function types as: native fn (), fn~ (), fn@ (), and fn& ()
+14:45 < Wensley> yes, I think I'll do that, at least
+14:46 < Wensley> is `native fn` the actual keyword?
+14:46 < kcantu> yes
+14:47 < kcantu> look at line 128: https://github.com/killerswan/rust-tools/blob/master/function-test.rs
+14:48 < Wensley> would you only use `native fn()` for anonymous normal functions?
+14:48 < kcantu> So there are three ways to define a function.
+14:49 < kcantu> As a statement, fn myFunction () -> () { ... }
+14:49 < kcantu> As an expression, let myFunction = fn@ () -> () { ... }
+14:50 < kcantu> As a {||}, vec::map(data, {|arg| ... });
+14:50 < Wensley> is the statement just sugar for the expression?
+14:50 < kcantu> Maybe.
+14:51 < kcantu> I have asked questions about this, but not gotten answers yet. :)
+14:51 < Wensley> thanks for explaining :)
+14:51 < brson> no
+14:51 < kcantu> I think it would be reasonable to allow all four types to be defined in either way.
+14:52 < brson> expression is capturing
+14:52 < kcantu> Currently, the fn syntax can only be used to define a native fn.
+14:52 < Wensley> okay, I basically just wanted to ensure that when I said 'fn main()` I was making a native 
+                 fn
+14:53 < kcantu> And the expression syntax can only be used to define fn~ and fn@ functions.
+14:53 < kcantu> Except that the fn& expression syntax can be used when called as an argument immediately.
+14:54 < kcantu> And the {||} syntax can be used to define any of the four.
+14:55 < kcantu> Wensley: fn main() must be a statement, like `fn main () { ... }`, whose type is `native fn 
+                ()`
+14:57 < kcantu> brson: i don't know the internals of this, so i'm curious whether, say, fn@ statements could 
+                be made to capture
+14:58 < kcantu> brson: and whether let f = native fn () {...} expressions could be made not to capture
+14:58 < brson> kcantu: fn@ statements could be capturing. it was called for in the design for at one point
+14:59 < brson> both things might be desirable for completeness, but personally I'm fine without them, since 
+               there are already an overwhelming number of options

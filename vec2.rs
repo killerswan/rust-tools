@@ -3,7 +3,6 @@
 
 #[link(name = "vec2", author = "kcantu", vers = "0.0")];
 use std;
-use str2;
 
 fn windowed <TT: copy> (nn: uint, xx: [TT]) -> [[TT]] {
    let ww = [];
