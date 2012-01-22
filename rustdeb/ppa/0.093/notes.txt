@@ -1,0 +1,22 @@
+apt-get source rust
+uupdate -v 0.093 ../rust_XXXX.tar.gz	 # patching will leave .orig/ and fail
+mv rust-0.093/debian/ rust-0.093.orig/debian
+mv rust-0.093 rust-0.093-munged-patch
+mv rust-0.093.orig rust-0.093		 # ignore patches i made earlier
+diff -r rust-0.093 temp/rust-prerelease/ # see, only debian folder diff from release
+
+#get stage0s
+mkdir dl
+CFG_SRC_DIR=. python src/etc/latest-unix-snaps.py
+
+# actually, run the python and do the change to the makefile and 
+# put them into the .orig.tar.gz file for simplicity
+tar -cvzf rust_0.093.orig.tar.gz --exclude debian rust-0.093
+
+debuild -S -sa
+
+sudo pbuilder build ../rust_VERSION.dsc
+
+dput ppa:kevincantu/rust rust_VERSION_source.changes
+
+

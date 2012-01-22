@@ -1,4 +1,6 @@
+
 use std;
+use meow;
 
 /*
 Function: all
@@ -112,28 +114,16 @@ fn test_all () {
     assert false == all("YMCy", char::is_uppercase);
 }
 
-fn report_time <XX> (desc: str, ff: fn&() -> XX) {
-   let t0 = std::time::precise_time_s();
-   ff();
-   let t1 = std::time::precise_time_s();
-
-   std::io::println(desc + " " + #fmt("%06.3f sec", t1 - t0));
-}
-
 fn main () {
-   fn word_of_god () -> str {
-      std::io::println ("Loading the lolcat bible...");
-      let path = "../lolcat/LOLCatBible_2012-01-04.xml";
-      let bible = std::io::read_whole_file (path);
-      let bible_ = str::unsafe_from_bytes (result::get (bible));
-      //ret str::char_slice(bible_, 0u, 20000u);
-      ret bible_;
-   }
+   let f = bind map_slow(_,char::to_upper);
 
-   let meow = word_of_god();
+   fn f_ () { map_slow(meow::sample_string(), char::to_upper); }
+   meow::compare("compare map_slow vs. map_slow", f_, f_);
+   meow::compare_several("compare several map_slow vs. map_slow", f_, f_);
 
-   let _x = map_slow(meow, char::to_upper);
-   let _x = map(meow, char::to_upper);
+   //meow::compare_sweep_strings("compare sweep strings", f, f);
+   meow::compare_sweep_strings_lim("compare sweep strings", f, f, 18u);
+
 }
 
 
