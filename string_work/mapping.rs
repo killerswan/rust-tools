@@ -14,50 +14,11 @@ fn all(ss: str, ff: fn&(char) -> bool) -> bool {
 }
 
 /*
-Function: reserve
-
-Reserve capacity for `n` elements in a string
-*/
-fn reserve(&ss: str, nn: uint) unsafe {
-   // start with an existing string
-
-   str::char_len(ss); std::io::println("+++A+++");
-
-   // make a vector
-   let vv: [u8] = unsafe::reinterpret_cast(ss);
-   
-   str::char_len(ss); std::io::println("+++B+++");
-
-   // expand it to size + \0
-   vec::reserve(vv, nn+1u);
-
-   // FIXME:
-   // fails sometimes on assertion in byte_len called by char_len
-   str::char_len(ss); std::io::println("+++C+++");
-
-   // forget the vector
-   unsafe::leak(vv);
-
-   str::char_len(ss); std::io::println("+++D+++");
-}
-
-/*
-Function: reserve_empty
-
-Create and reserve capacity for `n` elements in a string
-*/
-fn reserve_empty(nn: uint) -> str unsafe {
-   let ss = "";
-   reserve(ss, nn);
-   ret ss;
-}
-
-/*
 Function: map
 
 Apply a function to each character
 */
-fn map_slow(ss: str, ff: fn&(char) -> char) -> str {
+fn map(ss: str, ff: fn&(char) -> char) -> str {
     let result = "";
 
     str::iter_chars(ss, {|cc|
@@ -67,18 +28,9 @@ fn map_slow(ss: str, ff: fn&(char) -> char) -> str {
     ret result;
 }
 
-fn mapX(ss: str, ff: fn&(char) -> char) -> str {
-    let result = reserve_empty(str::byte_len(ss));
-
-    str::iter_chars(ss, {|cc|
-        str::push_char(result, ff(cc));
-    });
-
-    ret result;
-}
-fn map(ss: str, ff: fn&(char) -> char) -> str {
+fn map_reserve(ss: str, ff: fn&(char) -> char) -> str {
    let result = "";
-   reserve(result, str::byte_len(ss));
+   str::reserve(result, str::byte_len(ss));
 
    str::iter_chars(ss, {|cc|
       str::push_char(result, ff(cc));
@@ -94,18 +46,6 @@ fn test_map () {
 }
 
 #[test]
-fn test_map_slow () {
-    assert "" == map_slow("", char::to_upper);
-    assert "YMCA" == map_slow("ymca", char::to_upper);
-}
-
-#[test]
-fn test_mapX () {
-    assert "" == mapX("", char::to_upper);
-    assert "YMCA" == mapX("ymca", char::to_upper);
-}
-
-#[test]
 fn test_all () {
     assert true  == all("", char::is_uppercase);
     assert false == all("ymca", char::is_uppercase);
@@ -115,15 +55,37 @@ fn test_all () {
 }
 
 fn main () {
-   let f = bind map_slow(_,char::to_upper);
+   let ff = bind map(_,char::to_upper);
+   let gg = bind map_reserve(_,char::to_upper);
 
-   fn f_ () { map_slow(meow::sample_string(), char::to_upper); }
-   meow::compare("compare map_slow vs. map_slow", f_, f_);
-   meow::compare_several("compare several map_slow vs. map_slow", f_, f_);
+   fn ff_ () { map(meow::sample_string(), char::to_upper); }
+   fn gg_ () { map_reserve(meow::sample_string(), char::to_upper); }
 
-   //meow::compare_sweep_strings("compare sweep strings", f, f);
-   meow::compare_sweep_strings_lim("compare sweep strings", f, f, 18u);
+   meow::compare("map vs. map_reserve", ff_, gg_);
+   meow::compare_several("map vs. map_reserve", ff_, gg_);
 
+   meow::compare_sweep_strings("map vs. map_reserve", ff, gg, 0u, 500000u);
+
+
+/* EXAMPLE RUN:
+   $ rustc -O meow.rc
+   $ rustc -L . -O mapping.rs 
+   $ ./mapping 
+   meow: map vs. map_reserve:	 0.939 ms,  0.952 ms
+   meow: map vs. map_reserve (avg):	 0.707 ms,  0.730 ms
+   meow: Sweeping across strings of 0 to 500000 (5 tests per step)...
+   meow: map vs. map_reserve (0):	 0.001 ms,  0.001 ms
+   meow: map vs. map_reserve (50000):	12.584 ms, 12.204 ms
+   meow: map vs. map_reserve (100000):	25.159 ms, 24.888 ms
+   meow: map vs. map_reserve (150000):	37.548 ms, 37.828 ms
+   meow: map vs. map_reserve (200000):	50.871 ms, 50.242 ms
+   meow: map vs. map_reserve (250000):	62.277 ms, 62.541 ms
+   meow: map vs. map_reserve (300000):	74.354 ms, 74.836 ms
+   meow: map vs. map_reserve (350000):	87.435 ms, 87.176 ms
+   meow: map vs. map_reserve (400000):	100.788 ms, 100.492 ms
+   meow: map vs. map_reserve (450000):	110.858 ms, 111.869 ms
+   meow: map vs. map_reserve (500000):	125.730 ms, 125.049 ms
+*/
 }
 
 

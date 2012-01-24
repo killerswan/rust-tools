@@ -1,16 +1,14 @@
-// benchmark string functions with very large samples
-// such as the text of the bible, in lolcat
+// benchmark string functions
+// (originally, with a copy of the LOLCat bible!)
 //
-// WARNING: this is NOT Haskell's QuickCheck or Criterion,
-// it is nearly the bare minimum I've done to feel like I'm actually
-// performance testing
+// WARNING: this is NOT Haskell's QuickCheck or Criterion :D
 
-export time,
-       sample_string,
-       compare,
-       compare_several,
-       compare_sweep_strings,
-       compare_sweep_strings_lim;
+export time,                  // time one function call
+       sample_string,         // provide a sample string < 2048 bytes
+       compare,               // compare two functions
+       compare_several,       // compare two functions (repeatedly)
+       compare_sweep_strings, // compare two string functions on a given range of sizes
+       compare_sweep_u8vecs;  // compare two [u8] funcs
 
 use std;
 
@@ -18,8 +16,8 @@ fn status (desc: str) {
    std::io::println("meow: " + desc);
 }
 
-fn status_two (desc: str, aa: float, bb: float) {
-      status(desc + ": " + fmt_secs(aa) + ", " + fmt_secs(bb));
+fn status_two (desc: str, aa: uint, bb: uint) {
+      status(desc + ":\t" + fmt_ms(aa) + ", " + fmt_ms(bb));
 }
 
 fn sample_string () -> str {
@@ -29,20 +27,20 @@ fn sample_string () -> str {
    ret generator.gen_str(sz as uint);
 }
 
-fn measure_time <XX> (action: fn&()->XX) -> float {
-   let t0 = std::time::precise_time_s();
+fn measure_time <XX> (action: fn&()->XX) -> uint {
+   let t0 = std::time::precise_time_ns();
    action();
-   let t1 = std::time::precise_time_s();
+   let t1 = std::time::precise_time_ns();
    ret t1 - t0;
 } 
 
-fn fmt_secs (secs: float) -> str {
-   #fmt("%06.3f sec", secs)
+fn fmt_ms (nsecs: uint) -> str {
+   #fmt("%06.3f ms", nsecs as float / 1e6f)
 }
 
 // measure one function
 fn time <XX> (desc: str, action: fn&()->XX) {
-   status(desc + " " + fmt_secs(measure_time(action)));
+   status(desc + " " + fmt_ms(measure_time(action)));
 }
 
 // measure two functions
@@ -60,7 +58,7 @@ fn compare_several <XX> (desc: str,
    let tsA = [];
    let tsB = [];
    let jj = 0u;
-   let nn = 7u;
+   let nn = 10u;
 
    while jj < nn {
       vec::push(tsA, measure_time(actionA));
@@ -68,55 +66,114 @@ fn compare_several <XX> (desc: str,
       jj += 1u;
    }
    
-   status_two(desc + " (avg)", avg(tsA), avg(tsB)); 
+   status_two(desc + " (avg)", avgu(tsA), avgu(tsB)); 
 }
 
-fn avg (ts: [float]) -> float {
+fn avgf (ts: [float]) -> float {
    ret vec::foldl(0f, ts, {|a,b| a+b})/(vec::len(ts) as float);
+}
+
+fn avgu (ts: [uint]) -> uint {
+   ret vec::foldl(0u, ts, {|a,b| a+b})/(vec::len(ts) as uint);
 }
 
 // measure two string functions,
 // several lengths of iterations,
 // on the same random data
-fn compare_sweep_strings_lim <XX> (desc: str,
-                           actionA: fn&(str)->XX,
-                           actionB: fn&(str)->XX,
-                           limit: uint) {
+fn compare_sweep_strings <XX, YY> (
+   desc: str,
+   actionA: fn&(str)->XX,
+   actionB: fn&(str)->YY,
+   min_size: uint,
+   max_size: uint
+) {
 
-   let timesA = [];
-   let timesB = [];
 
-   let jj = 0u;
-   let sz = 0u;
+   let iters = 5u;  // how many times to run at each size
+   let steps = 10u;  // how many steps are in a sweep
+
+   let size = min_size;
 
    let generator = std::rand::mk_rng();
 
-   while jj < limit {
-      let dataA = generator.gen_str(sz);
-      let dataB = dataA;
-   
-      let runA = measure_time({|| actionA(dataA)});
-      let runB = measure_time({|| actionB(dataB)});
+   status(#fmt("Sweeping across strings of %u to %u (%u tests per step)...", 
+               min_size,
+               max_size,
+               iters));
 
-      vec::push(timesA, runA);
-      vec::push(timesB, runB);
+   // sweep through sizes
+   while size <= max_size {
+      let iter = 0u;
+      let timesA = [];
+      let timesB = [];
 
-      status_two(desc + #fmt(" of size: %8u", sz), runA, runB);
+      while iter < iters {
+         let dataA = generator.gen_str(size);
+         let dataB = dataA;
+      
+         let runA = measure_time({|| actionA(dataA)});
+         let runB = measure_time({|| actionB(dataB)});
 
-      if sz == 0u {
-         sz += 1u;
-      } else {
-         sz *= 5u;
+         vec::push(timesA, runA);
+         vec::push(timesB, runB);
+
+
+         iter += 1u;
       }
+      
+      status_two(desc + #fmt(" (%u)", size), avgu(timesA), avgu(timesB));
 
-      jj += 1u;
+      size += (max_size - min_size) / steps;
+   } }
+
+// measure two [u8] functions,
+// several lengths of iterations,
+// on the same random data
+fn compare_sweep_u8vecs <XX, YY> (
+   desc: str,
+   actionA: fn&([u8])->XX,
+   actionB: fn&([u8])->YY,
+   min_size: uint,
+   max_size: uint
+) {
+
+
+   let iters = 5u;  // how many times to run at each size
+   let steps = 10u;  // how many steps are in a sweep
+
+   let size = min_size;
+
+   let generator = std::rand::mk_rng();
+
+   status(#fmt("Sweeping across [u8] of %u to %u (%u tests per step)...", 
+               min_size,
+               max_size,
+               iters));
+
+   // sweep through sizes
+   while size <= max_size {
+      let iter = 0u;
+      let timesA = [];
+      let timesB = [];
+
+      while iter < iters {
+         let dataA = generator.gen_bytes(size);
+         let dataB = dataA;
+      
+         let runA = measure_time({|| actionA(dataA)});
+         let runB = measure_time({|| actionB(dataB)});
+
+         vec::push(timesA, runA);
+         vec::push(timesB, runB);
+
+
+         iter += 1u;
+      }
+      
+      status_two(desc + #fmt(" (%u)", size), avgu(timesA), avgu(timesB));
+
+      size += (max_size - min_size) / steps;
    }
-}
-
-fn compare_sweep_strings <XX> (desc: str,
-                           actionA: fn&(str)->XX,
-                           actionB: fn&(str)->XX) {
-   compare_sweep_strings_lim(desc, actionA, actionB, 10u);
 }
 
 
