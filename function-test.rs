@@ -17,152 +17,302 @@ let def        no             yes         yes            no          e.g., let x
                                                                                                   
 {||} def       yes            yes         yes            yes         e.g., abc({|| ...});         
                                                                                                   
-can also be    ~,@,&          &           &                                                       
+can also be    fn~,fn@,fn&    fn          fn             fn                                       
 used _as_                                                                                         
                                                                                                   
 */
 
-// why do the types, fn(), fn~(), fn@(), and fn&() require parens?
-// why isn't there a way to name a fn&?
-// why isn't there a top level equivalent to fn for each of the others?
+// Why do the types native fn(), fn~(), fn@(), and fn&() require parens?
+// Why isn't there a way to name a fn&?
 
 
 use std;
 
+fn message () { (); }
 
-#[test]
-fn testFunctionClosure () {
 
-   let fruit = "banana";
 
-   // top level fn syntax
-   fn innerFunction1 () {
-      let fruit = "orange";   // commenting this out leads to an error
-                              // (does not make a fn& with closure)
+#[cfg(test)]
+mod native {
 
-      assert fruit == "orange";
+   #[test]
+   fn statement () {
+      let fruit = "banana";
+
+      fn innerFunction1 () {
+         let fruit = "orange";   // commenting this out leads to an error
+                                 // (does not make a fn& with closure)
+         assert fruit == "orange";
+      }
+
+      innerFunction1 ();
+      assert fruit == "banana";
    }
 
-/* COMPILER ERROR
-   // let fn syntax
-   let innerFunction2 = native fn () {
-      let fruit = "orange";
-      assert fruit == "orange";
-   };
+/*
+   #[test]
+   fn expression () {
+      fail
+      let innerFunction2 = native fn () {
+         let fruit = "orange";
+         assert fruit == "orange";
+      };
+
+      innerFunction2 ();
+      assert fruit == "banana";
+   }
 */
 
-   innerFunction1 ();
-//   innerFunction2 ();
-   assert fruit == "banana";
+
+   fn call ( f : native fn() ) { f(); }
+
+   #[test]
+   fn with_native () {
+      fn f1 () { message (); }
+      call(f1);
+   }
+
+/*
+   #[test]
+   // compiler error
+   fn with_sendfn () {
+      let s1 = fn~ () { message (); };
+      call (s1);
+   }
+*/
+
+/*
+   #[test]
+   // compiler error
+   fn with_lambda () {
+      let l1 = fn@ () { message (); };
+      call (l1);                        // compiler error
+   }
+*/
+
+/*
+   #[test]
+   // compiler error
+   fn with_block () {
+      call (fn& () { message ();});   // compiler error
+   }
+*/
+
+   #[test]
+   fn with_literal () {
+      call ({|| message ();});
+   }
 }
 
+#[cfg(test)]
+mod sendfn {
+   #[test]
+   fn expression () {
+      let fruit = "banana";
+      
+      // let sendfn syntax
+      let innerSendfn = fn~ () {
+         assert fruit == "banana";
 
-#[test]
-fn testSendfnClosure () {
-
-   let fruit = "banana";
-   
-   // let sendfn syntax
-   let innerSendfn = fn~ () {
+         // overwrite the value
+         let fruit = "mango";
+         assert fruit == "mango";
+      };
+      
+      innerSendfn ();
+      
       assert fruit == "banana";
+   }   
 
-      // overwrite the value
-      let fruit = "mango";
-      assert fruit == "mango";
-   };
-   
-   innerSendfn ();
-   
-   assert fruit == "banana";
+   #[test]
+   fn statement () {
+   }
+
+   fn call ( f : fn~() ) { f(); }
+
+   #[test]
+   fn with_native () {
+      fn f1 () { message (); }
+      call(f1);
+   }
+
+   #[test]
+   fn with_sendfn () {
+      let s1 = fn~ () { message (); };
+      call (s1);
+   }
+
+/*
+   #[test]
+   fn with_lambda () {
+      let l1 = fn@ () { message (); };
+      call (l1);
+   }
+
+   #[test]
+   fn with_block () {
+      call (fn& () { message ();});
+   }
+*/
+
+   #[test]
+   fn with_literal () {
+      call ({|| message ();});
+   }
 }
 
 
-#[test]
-fn testLambdaClosure () {
 
-   let fruit = "banana";
-   
-   // let lambda syntax
-   let innerLambda = fn@ () {
+#[cfg(test)]
+mod lambda {
+   fn call   ( f : fn@() ) { f(); }
+
+   #[test]
+   fn expression () {
+
+      let fruit = "banana";
+      
+      // let lambda syntax
+      let innerLambda = fn@ () {
+         assert fruit == "banana";
+
+         // overwrite the value
+         let fruit = "tangerine";
+         assert fruit == "tangerine";
+      };
+      
+      innerLambda ();
+      
       assert fruit == "banana";
+   }
 
-      // overwrite the value
-      let fruit = "tangerine";
-      assert fruit == "tangerine";
-   };
-   
-   innerLambda ();
-   
-   assert fruit == "banana";
+   #[test]
+   fn with_native () {
+      fn f1 () { message (); }
+
+      call (f1);
+   }
+
+/*
+   #[test]
+   fn with_sendfn () {
+      let s1 = fn~ () { message (); };
+      call (s1);                          // compiler error
+   }
+*/
+
+   #[test]
+   fn with_lambda () {
+      let l1 = fn@ () { message (); };
+      call (l1);
+   }
+
+/*
+   #[test]
+   fn with_block () {
+      call (fn& () { message ();});     // compiler error
+   }
+*/
+
+   #[test]
+   fn with_literal () {
+      call ({|| message ();});
+   }
 }
 
+#[cfg(test)]
+mod block {
+   fn call    ( f : fn& () ) { f(); }
 
-#[test]
-fn testBlockClosure () {
+   #[test]
+   fn expression () {
 
-   let fruit = "banana";
+      let fruit = "banana";
 
-   fn run1 ( b : fn& () ) {
-      let i = 1u;
-      while (i > 0u) { i = 0u;
-         b ();
+      fn run1 ( b : fn& () ) {
+         let i = 1u;
+         while (i > 0u) { i = 0u;
+            b ();
+         }
       }
-   }
-   
-   // callee explicit fn& syntax
-   // (Is there no way to define a fn&
-   // before positioning it as an argument?)
-   run1 ( fn& () {
-      assert fruit == "banana";
+      
+      // callee explicit fn& syntax
+      // (Is there no way to define a fn&
+      // before positioning it as an argument?)
+      run1 ( fn& () {
+         assert fruit == "banana";
 
-      // overwrite the value
-      fruit = "pineapple";
+         // overwrite the value
+         fruit = "pineapple";
+         assert fruit == "pineapple";
+      });
+      
       assert fruit == "pineapple";
-   });
-   
-   assert fruit == "pineapple";
+   }
+
+   #[test]
+   fn with_native () {
+      fn f1 () { message (); }
+      call (f1);
+   }
+
+/*
+   #[test]
+   fn with_sendfn () {
+      let s1 = fn~ () { message (); };
+      //call (s1);
+   }
+
+   #[test]
+   fn with_lambda () {
+      let l1 = fn@ () { message (); };
+      //call (l1);
+   }
+*/
+
+   #[test]
+   fn with_block () {
+      call (fn& () { message ();});
+   }
+
+   #[test]
+   fn with_literal () {
+      call ({|| message ();});
+   }
+
 }
 
+#[cfg(test)]
+mod fn {
+   fn call       ( f : fn () ) { f(); }
 
-fn message () { (); }
-fn usingFunction ( f : native fn() ) { f(); }
-fn usingSendfn   ( f : fn~() ) { f(); }
-fn usingLambda   ( f : fn@() ) { f(); }
-fn usingBlock    ( f : fn& () ) { f(); }
-
-
-#[test]
-fn testFnTypes () {
-   //let f1 = native fn     () { message (); }; // compiler error
-   fn f1 () {
-      message ();
+   #[test]
+   fn with_native () {
+      fn f1 () { message (); }
+      call (f1);
    }
-   let s1 = fn~ () { message (); };
-   let l1 = fn@ () { message (); };
 
-   usingFunction (f1);
-   //usingFunction (s1);                        // compiler error
-   //usingFunction (l1);                        // compiler error
-   //usingFunction (fn& () { message ();});   // compiler error
-   usingFunction ({|| message ();});
+   #[test]
+   fn with_sendfn () {
+      let s1 = fn~ () { message (); };
+      call (s1);
+   }
 
-   usingSendfn (f1);
-   usingSendfn (s1);
-   //usingSendfn (l1);                          // compiler error
-   //usingSendfn (fn& () { message ();});     // compiler error
-   usingSendfn ({|| message ();});
+   #[test]
+   fn with_lambda () {
+      let l1 = fn@ () { message (); };
+      call (l1);
+   }
 
-   usingLambda (f1);
-   //usingLambda (s1);                          // compiler error
-   usingLambda (l1);
-   //usingLambda (fn& () { message ();});     // compiler error
-   usingLambda ({|| message ();});
+   #[test]
+   fn with_block () {
+      call (fn& () { message ();});
+   }
 
-   usingBlock (f1);
-   usingBlock (s1);
-   usingBlock (l1);
-   usingBlock (fn& () { message ();});
-   usingBlock ({|| message ();});
+   #[test]
+   fn with_literal () {
+      call ({|| message ();});
+   }
 }
 
 
