@@ -1,0 +1,12 @@
+To install the launchpad stuff[1], and lp-shell:
+$ sudo apt-get install python-launchpadlib lptools
+
+Try the function function [2] which I've put in more.py:
+$ lp-shell
+>>> execfile('/code/rust-tools/packaging/ppa/stats.py')
+>>> getDownloadCounts('rust')
+   
+[1] https://help.launchpad.net/API/launchpadlib
+[2] http://paste.ubuntu.com/821868/ (from jtaylor on #ubuntu-packaging)
+
+
