@@ -20,3 +20,6 @@ sudo pbuilder build ../rust_VERSION.dsc
 dput ppa:kevincantu/rust rust_VERSION_source.changes
 
 
+####
+note: the changelog can be updated via, e.g.:
+$ dch -v 0.1-3~lucid
