@@ -135,6 +135,14 @@ fn prefix_table (needle: str) -> std::map::map<uint, uint> {
 
          kk += 1u;
       }
+
+      // for this suffix jj, if no matching prefix, where did we fall out?
+      // i.e., what is the last prefix that was still partially matching,
+      // e.g., for suffix "man", the prefix "an" works, and is +6...
+      //       but will not be added above...
+      //
+      // TODO: add that to table
+
       jj += 1u;
    }
 
