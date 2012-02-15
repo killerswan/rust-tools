@@ -14,3 +14,4 @@ def getDownloadCounts(ppa, **kwargs):
           binary.distro_arch_series, c#, binary.architecture_specific
     print(binary.getDailyDownloadTotals(start_date='2012-01-01', end_date='2012-02-01'))
   return stat
+
