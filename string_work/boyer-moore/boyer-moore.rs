@@ -102,14 +102,23 @@ fn prefix_table (needle: str) -> std::map::map<uint, uint> {
    let lim   = str::len(needle);
 
    while jj < lim {    // sufixes
-      std::io::println("^");
       kk = 0u;
 
       while kk < lim { // prefixes
          let suf = sufs[jj];
          let pref = prefs[kk];
 
-         std::io::println("[" + pref + ", " + suf + "]");
+
+         if str::len_bytes(pref) > str::len_bytes(suf) {
+            std::io::println("[" + pref + ", " + suf + "]");
+            std::io::println(">");
+            if str::ends_with(pref, suf) {
+               std::io::println("(suf)");
+               if !str::ends_with(pref, sufs[jj+1u]) {
+                  std::io::println("(suf+1)");
+               }
+            }
+         }
 
          if str::len_bytes(pref) > str::len_bytes(suf) &&
             str::ends_with(pref, suf) &&
@@ -119,7 +128,7 @@ fn prefix_table (needle: str) -> std::map::map<uint, uint> {
 
             if ! mm.contains_key(jj)
             {
-               std::io::print("*");
+               std::io::println("*");
                mm.insert(jj, kk);
             }
          }
