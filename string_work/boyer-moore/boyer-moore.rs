@@ -174,16 +174,15 @@ fn test_prefix_table() {
                         //     ... 8
    std::io::print("+");
    log(error, pt);
-   assert 1u == pt.get(0u); //  (a)n
-   assert 8u == pt.get(1u); // (m)an
-   assert 3u == pt.get(2u); //(n)man
-   assert 6u == pt.get(3u);
-   assert 6u == pt.get(4u);
-   assert 6u == pt.get(5u);
-   assert 6u == pt.get(6u);
-   assert 6u == pt.get(7u); // MATCH
-   assert 0u == pt.get(8u); // fail
-   //assert 0u == pt.get(9u); // fail
+   assert 1u == pt.get(0u); //        (n)
+   assert 8u == pt.get(1u); //       (a)n
+   assert 3u == pt.get(2u); //      (m)an
+   assert 6u == pt.get(3u); //     (n)man
+   assert 6u == pt.get(4u); //    (a)nman
+   assert 6u == pt.get(5u); //   (p)anman
+   assert 6u == pt.get(6u); //  (n)panman
+   assert 6u == pt.get(7u); // (a)npanman
+   //assert 0u == pt.get(8u); // fail
 }
 
 ////////////////////////////////////////////////////////////
@@ -193,6 +192,7 @@ fn test_prefix_table() {
 fn prefixes(ss: str) -> [str] unsafe {
    let vv = [];
    let sz = 0u;
+   vec::push(vv, "");
    str::bytes_iter(ss) {|_bb|
       sz += 1u;
       vec::push(vv, str::unsafe::slice_bytes(ss, 0u, sz));
@@ -215,6 +215,7 @@ fn suffixes(ss: str) -> [str] unsafe {
       vec::push(vv, str::unsafe::slice_bytes(ss, sz, lim));
       sz += 1u;
    }
+   vec::push(vv, "");
    ret vv;
 }
 
@@ -237,7 +238,7 @@ fn find_bytes_(needle: str, haystack: str) -> option<uint> {
    ret option::some(findn_bytes(needle, haystack, 1u)[0u]);
 }
 
-//#[test]
+#[test]
 fn test_find_bytes() {
   // byte positions
   assert (find_bytes_("banana", "apple pie") == option::none);
