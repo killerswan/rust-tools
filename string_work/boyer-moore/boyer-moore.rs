@@ -102,36 +102,50 @@ fn prefix_table (needle: str) -> std::map::map<uint, uint> {
    let lim   = str::len(needle);
 
    while jj < lim {    // sufixes
+      std::io::println("\n<newsuff: " + sufs[jj] + ">");
+
       kk = 0u;
 
       while kk < lim { // prefixes
+         std::io::print("<prefixes: " + prefs[kk] + "> ");
+
          let suf = sufs[jj];
          let pref = prefs[kk];
 
 
          if str::len_bytes(pref) > str::len_bytes(suf) {
-            std::io::println("[" + pref + ", " + suf + "]");
-            std::io::println(">");
+            //std::io::println("[" + pref + ", " + suf + "]");
+            std::io::print("(pref > suf)");
             if str::ends_with(pref, suf) {
-               std::io::println("(suf)");
+               std::io::print("(ew)");
                if !str::ends_with(pref, sufs[jj+1u]) {
-                  std::io::println("(suf+1)");
+                  std::io::print("(ew+1)");
+
+                  if ! mm.contains_key(jj)
+                  {
+                     std::io::print(#fmt("(+%u)", kk));
+                     mm.insert(jj, kk);
+                  }
                }
             }
          }
 
-         if str::len_bytes(pref) > str::len_bytes(suf) &&
-            str::ends_with(pref, suf) &&
-           !str::ends_with(pref, sufs[jj+1u])
-         {
-            std::io::print("-");
+         if str::len_bytes(pref) <= str::len_bytes(suf) {
+            std::io::print("(pref <= suf)");
 
-            if ! mm.contains_key(jj)
+            if str::ends_with(suf, pref) // partial
             {
-               std::io::println("*");
-               mm.insert(jj, kk);
+               std::io::print("(^ew)");
+
+               if ! mm.contains_key(jj)
+               {
+                  std::io::print(#fmt("(*%u)", kk));
+                  mm.insert(jj, kk);
+               }
             }
          }
+
+         std::io::println("");
 
          kk += 1u;
       }
@@ -142,6 +156,11 @@ fn prefix_table (needle: str) -> std::map::map<uint, uint> {
       //       but will not be added above...
       //
       // TODO: add that to table
+      if ! mm.contains_key(jj)
+      {
+         std::io::print(#fmt("(=%u)", kk));
+         mm.insert(jj, kk);
+      }
 
       jj += 1u;
    }
@@ -152,9 +171,19 @@ fn prefix_table (needle: str) -> std::map::map<uint, uint> {
 #[test]
 fn test_prefix_table() {
    let pt = prefix_table("ANPANMAN");
+                        //     ... 8
    std::io::print("+");
    log(error, pt);
-   assert 8u == pt.get(2u);
+   assert 1u == pt.get(0u); //  (a)n
+   assert 8u == pt.get(1u); // (m)an
+   assert 3u == pt.get(2u); //(n)man
+   assert 6u == pt.get(3u);
+   assert 6u == pt.get(4u);
+   assert 6u == pt.get(5u);
+   assert 6u == pt.get(6u);
+   assert 6u == pt.get(7u); // MATCH
+   assert 0u == pt.get(8u); // fail
+   //assert 0u == pt.get(9u); // fail
 }
 
 ////////////////////////////////////////////////////////////
@@ -173,7 +202,7 @@ fn prefixes(ss: str) -> [str] unsafe {
 
 #[test]
 fn test_prefs() {
-   assert ["a", "ab", "abc", "abcd"] == prefixes("abcd");
+   assert ["", "a", "ab", "abc", "abcd"] == prefixes("abcd");
 }
 
 
@@ -191,7 +220,7 @@ fn suffixes(ss: str) -> [str] unsafe {
 
 #[test]
 fn test_sufs() {
-   assert ["abcd", "bcd", "cd", "d"] == suffixes("abcd");
+   assert ["abcd", "bcd", "cd", "d", ""] == suffixes("abcd");
 }
 
 fn greaterOf(a: uint, b: uint) -> uint {
