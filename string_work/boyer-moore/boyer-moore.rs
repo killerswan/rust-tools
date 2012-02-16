@@ -20,10 +20,11 @@ fn findn_bytes (needle: str, haystack: str, nn: uint) -> [uint] {
 
    while ii < str::len_bytes(haystack) {
 
-      jj = str::len_bytes(needle) - 1u;
+      jj = str::len_bytes(needle);
 
       // reverse through needle
       while 0u <= jj {
+         jj -= 1u;
 
          // if still matching
          if needle[jj] == haystack[ii] {
@@ -53,9 +54,6 @@ fn findn_bytes (needle: str, haystack: str, nn: uint) -> [uint] {
             ii += greaterOf(ctx, ptx) - jj;
             jj = 0u;
          }
-
-
-         jj -= 1u;
       }
 
       ii += 1u;
@@ -112,6 +110,7 @@ fn prefix_table (needle: str) -> std::map::map<uint, uint> {
          let suf = sufs[jj];
          let pref = prefs[kk];
 
+         // combine this logic
 
          if str::len_bytes(pref) > str::len_bytes(suf) {
             //std::io::println("[" + pref + ", " + suf + "]");
@@ -153,9 +152,7 @@ fn prefix_table (needle: str) -> std::map::map<uint, uint> {
       // for this suffix jj, if no matching prefix, where did we fall out?
       // i.e., what is the last prefix that was still partially matching,
       // e.g., for suffix "man", the prefix "an" works, and is +6...
-      //       but will not be added above...
-      //
-      // TODO: add that to table
+
       if ! mm.contains_key(jj)
       {
          std::io::print(#fmt("(=%u)", kk));
