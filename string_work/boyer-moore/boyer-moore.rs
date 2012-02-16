@@ -12,22 +12,27 @@ fn findn_bytes (needle: str, haystack: str, nn: uint) -> [uint] {
    let ct = char_table(needle);
    let pt = prefix_table(needle);
 
-   log(error, ct);
-   log(error, pt);
+   //log(error, ct);
+   //log(error, pt);
 
    let ii = 0u;
    let jj = 0u;
 
    while ii < str::len_bytes(haystack) {
+      std::io::print(".");
 
       jj = str::len_bytes(needle);
 
       // reverse through needle
-      while 0u <= jj {
+      while 0u < jj {
+         std::io::print("+");
+
          jj -= 1u;
 
          // if still matching
          if needle[jj] == haystack[ii] {
+            std::io::print("(= " + #fmt("%u", jj) + ")");
+
             // if full match
             if jj == 0u {
                vec::push(results, jj);
@@ -36,6 +41,8 @@ fn findn_bytes (needle: str, haystack: str, nn: uint) -> [uint] {
 
          // if partial match
          } else {
+            std::io::print("(| " + #fmt("%u", jj) + ")");
+
             let sufn = str::len_bytes(needle) - jj;
 
             let ctx;
@@ -51,11 +58,13 @@ fn findn_bytes (needle: str, haystack: str, nn: uint) -> [uint] {
                option::some(x) { ptx = x;}
             }
 
-            ii += greaterOf(ctx, ptx) - jj;
+            ii += greaterOf(ctx, ptx) + sufn;
+
             jj = 0u;
          }
       }
 
+      std::io::println("");
       ii += 1u;
    }
 
@@ -100,12 +109,12 @@ fn prefix_table (needle: str) -> std::map::map<uint, uint> {
    let lim   = str::len(needle);
 
    while jj < lim {    // sufixes
-      std::io::println("\n<newsuff: " + sufs[jj] + ">");
+//      std::io::println("\n<newsuff: " + sufs[jj] + ">");
 
       kk = 0u;
 
       while kk < lim { // prefixes
-         std::io::print("<prefixes: " + prefs[kk] + "> ");
+//         std::io::print("<prefixes: " + prefs[kk] + "> ");
 
          let suf = sufs[jj];
          let pref = prefs[kk];
@@ -113,16 +122,15 @@ fn prefix_table (needle: str) -> std::map::map<uint, uint> {
          // combine this logic
 
          if str::len_bytes(pref) > str::len_bytes(suf) {
-            //std::io::println("[" + pref + ", " + suf + "]");
-            std::io::print("(pref > suf)");
+//            std::io::print("(pref > suf)");
             if str::ends_with(pref, suf) {
-               std::io::print("(ew)");
+//               std::io::print("(ew)");
                if !str::ends_with(pref, sufs[jj+1u]) {
-                  std::io::print("(ew+1)");
+//                  std::io::print("(ew+1)");
 
                   if ! mm.contains_key(jj)
                   {
-                     std::io::print(#fmt("(+%u)", kk));
+//                     std::io::print(#fmt("(+%u)", kk));
                      mm.insert(jj, kk);
                   }
                }
@@ -130,21 +138,21 @@ fn prefix_table (needle: str) -> std::map::map<uint, uint> {
          }
 
          if str::len_bytes(pref) <= str::len_bytes(suf) {
-            std::io::print("(pref <= suf)");
+//            std::io::print("(pref <= suf)");
 
             if str::ends_with(suf, pref) // partial
             {
-               std::io::print("(^ew)");
+//               std::io::print("(^ew)");
 
                if ! mm.contains_key(jj)
                {
-                  std::io::print(#fmt("(*%u)", kk));
+//                  std::io::print(#fmt("(*%u)", kk));
                   mm.insert(jj, kk);
                }
             }
          }
 
-         std::io::println("");
+//         std::io::println("");
 
          kk += 1u;
       }
@@ -155,7 +163,7 @@ fn prefix_table (needle: str) -> std::map::map<uint, uint> {
 
       if ! mm.contains_key(jj)
       {
-         std::io::print(#fmt("(=%u)", kk));
+//         std::io::print(#fmt("(=%u)", kk));
          mm.insert(jj, kk);
       }
 
@@ -169,8 +177,8 @@ fn prefix_table (needle: str) -> std::map::map<uint, uint> {
 fn test_prefix_table() {
    let pt = prefix_table("ANPANMAN");
                         //     ... 8
-   std::io::print("+");
-   log(error, pt);
+//   std::io::print("+");
+
    assert 1u == pt.get(0u); //        (n)
    assert 8u == pt.get(1u); //       (a)n
    assert 3u == pt.get(2u); //      (m)an
