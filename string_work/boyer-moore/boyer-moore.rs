@@ -152,22 +152,10 @@ fn prefix_table (needle: str) -> std::map::map<uint, uint> {
    let kk    = 0u;
    let lim   = str::len_bytes(needle);
 
-   while jj < lim {    // sufixes
-      std::io::println("\n<newsuff: " + sufs[jj] + ">");
-
+   vec::iter(sufs) {|suf|
       kk = 0u;
 
-      while kk < lim { // prefixes
-         std::io::print("<prefixes: " + prefs[kk] + "> ");
-
-         assert jj >= 0u;
-         assert jj < str::len_bytes(needle);
-
-         assert kk >= 0u;
-         assert kk < str::len_bytes(needle);
-
-         let suf = sufs[jj];
-         let pref = prefs[kk];
+      vec::iter(prefs) {|pref|
 
          assert jj+1u >= 0u;
          assert jj+1u < str::len_bytes(suf); // AHA!
@@ -175,16 +163,10 @@ fn prefix_table (needle: str) -> std::map::map<uint, uint> {
          // combine this logic
 
          if str::len_bytes(pref) > str::len_bytes(suf) {
-            std::io::print("(pref > suf)");
             if str::ends_with(pref, suf) {
-               std::io::print("(ew)");
-
                if !str::ends_with(pref, sufs[jj+1u]) {
-                  std::io::print("(ew+1)");
-
                   if ! mm.contains_key(jj)
                   {
-                     std::io::print(#fmt("(+%u)", kk));
                      mm.insert(jj, kk);
                   }
                }
@@ -192,21 +174,17 @@ fn prefix_table (needle: str) -> std::map::map<uint, uint> {
          }
 
          if str::len_bytes(pref) <= str::len_bytes(suf) {
-            std::io::print("(pref <= suf)");
 
             if str::ends_with(suf, pref) // partial
             {
-               std::io::print("(^ew)");
 
                if ! mm.contains_key(jj)
                {
-                  std::io::print(#fmt("(*%u)", kk));
                   mm.insert(jj, kk);
                }
             }
          }
 
-         std::io::println("");
 
          kk += 1u;
       }
@@ -217,21 +195,19 @@ fn prefix_table (needle: str) -> std::map::map<uint, uint> {
 
       if ! mm.contains_key(jj)
       {
-         std::io::print(#fmt("(=%u)", kk));
          mm.insert(jj, kk);
       }
 
       jj += 1u;
    }
 
-   ret mm
+   ret mm;
 }
 
 //#[test]
 fn test_prefix_table() {
    let pt = prefix_table("ANPANMAN");
                         //     ... 8
-//   std::io::print("+");
 
    assert 1u == pt.get(0u); //        (n)
    assert 8u == pt.get(1u); //       (a)n
