@@ -130,6 +130,14 @@ fn test_char_table () {
 
 fn prefix_table (needle: str) -> std::map::map<uint, uint> {
    let mm: std::map::map<uint, uint> = std::map::new_uint_hash();
+
+   let fill = fn@(kk: uint, vv: uint) {
+      if ! mm.contains_key(kk) {
+         mm.insert(kk, vv);
+         std::io::println(#fmt("%u => %u", kk, vv));
+      }
+   };
+
    let lim   = str::len(needle);
    assert 0u < lim;
 
@@ -160,34 +168,21 @@ fn prefix_table (needle: str) -> std::map::map<uint, uint> {
             && !str::ends_with(prefix, suffix_plus)
             &&  slen < plen 
          {
-            if !mm.contains_key(sii)
-            {
-               mm.insert(sii, lim-pii);
-               std::io::println(#fmt("%u => %u",sii, lim-pii));
-            }
+            fill(sii, lim-pii);
          }
 
          // prefix is bigger than suffix, only tail can match
          if str::len(prefix) <= str::len(suffix)
             && str::ends_with(suffix, prefix)
          {
-            if !mm.contains_key(sii)
-            {
-               mm.insert(sii, lim-pii);
-               std::io::println(#fmt("%u => %u",sii, lim-pii));
-            }
+            fill(sii, lim-pii);
          }
 
          pii -= 1u;
       }
 
       // no matching prefix
-      // i.e., what is the last prefix that was still partially matching,
-      // e.g., for suffix "man", the prefix "an" works, and is +6...
-      if ! mm.contains_key(sii) {
-         mm.insert(sii, lim-pii);
-         std::io::println(#fmt("%u => %u",sii, lim-pii));
-      }
+      fill(sii, lim-pii);
 
       sii += 1u;
    }
