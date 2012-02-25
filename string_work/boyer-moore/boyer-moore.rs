@@ -212,38 +212,40 @@ fn test_prefix_table() {
 
 // prefixes, smallest first
 fn prefixes(ss: str) -> [str] unsafe {
-   assert str::len(ss) > 0u;
-
    let vv = [];
+
+   vec::push(vv, "");
    str::chars_iteri(ss) {|ii, _bb|
-      vec::push(vv, str::slice(ss, 0u, ii));
+      vec::push(vv, str::slice(ss, 0u, ii+1u));
    }
-   vec::push(vv, ss);
+
    ret vv;
 }
 
 #[test]
 fn test_prefs() {
    assert ["", "a", "ab", "abc", "abcd"] == prefixes("abcd");
+   assert [""] == prefixes("");
 }
 
 
 // suffixes, largest first
 fn suffixes(ss: str) -> [str] unsafe {
-   assert str::len(ss) > 0u;
-
    let vv = [];
    let lim = str::len(ss);
+
    str::chars_iteri(ss) {|ii, _bb|
       vec::push(vv, str::slice(ss, ii, lim));
    }
    vec::push(vv, "");
+
    ret vv;
 }
 
 #[test]
 fn test_sufs() {
    assert ["abcd", "bcd", "cd", "d", ""] == suffixes("abcd");
+   assert [""] == suffixes("");
 }
 
 fn greaterOf(a: uint, b: uint) -> uint {
