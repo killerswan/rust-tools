@@ -131,10 +131,11 @@ fn test_char_table () {
 fn prefix_table (needle: str) -> std::map::map<uint, uint> {
    let mm: std::map::map<uint, uint> = std::map::new_uint_hash();
 
+   // WAIT, HOW IS THIS ALLOWED TO MUTATE mm?
    let fill = fn@(kk: uint, vv: uint) {
       if ! mm.contains_key(kk) {
          mm.insert(kk, vv);
-         std::io::println(#fmt("%u => %u", kk, vv));
+         //std::io::println(#fmt("%u => %u", kk, vv));
       }
    };
 
@@ -144,9 +145,8 @@ fn prefix_table (needle: str) -> std::map::map<uint, uint> {
    // step to larger suffixes
    let sii = 0u;
    while sii < lim {
-      //assert      lim-sii    < lim;
-      //assert 0u <= lim-sii-1u;
 
+      // tail of the needle we seek
       let suffix      = str::slice(needle, lim - sii,      lim);
       let suffix_plus = str::slice(needle, lim - sii - 1u, lim);
       let slen = str::len(suffix);
@@ -154,27 +154,28 @@ fn prefix_table (needle: str) -> std::map::map<uint, uint> {
       // step to smaller prefixes
       let pii = lim - 1u;
       while pii > 0u {
-         //assert       pii < lim;
-         //assert 0u <= pii;
 
+         // a prefix of the needle that might be matched by
+         // a partial match of a suffix
+         // (which we might want to jump to)
          let prefix = str::slice(needle, 0u, pii);
-         let plen   = str::len(prefix);
 
-         let msg = ("<"+suffix+"("+#fmt("%u",sii)+") × "+prefix+"("+#fmt("%u",pii)+")>");
-         std::io::println(msg);
+         //let msg  = "<"+suffix+"("+#fmt("%u",sii)+")";
+         //let msg2 = prefix+"("+#fmt("%u",pii)+")>";
+         //std::io::println(msg + " × " + msg2);
 
          // suffix might be fully matched
-         if str::ends_with(prefix, suffix)
+         let is_suffix_matched =
+            str::ends_with(prefix, suffix)
             && !str::ends_with(prefix, suffix_plus)
-            &&  slen < plen 
-         {
-            fill(sii, lim-pii);
-         }
+            &&  slen < str::len(prefix);
 
          // prefix is bigger than suffix, only tail can match
-         if str::len(prefix) <= str::len(suffix)
-            && str::ends_with(suffix, prefix)
-         {
+         let is_suffix_partially_matched = 
+            str::len(prefix) <= str::len(suffix)
+            && str::ends_with(suffix, prefix);
+
+         if is_suffix_matched || is_suffix_partially_matched {
             fill(sii, lim-pii);
          }
 
