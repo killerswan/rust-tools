@@ -118,7 +118,7 @@ fn char_table (needle: str) -> std::map::map<uint, uint> {
    ret mm;
 }
 
-//#[test]
+#[test]
 fn test_char_table () {
    let ct = char_table("ANPANMAN");
    assert 1u == ct.get('A' as uint);
@@ -134,8 +134,8 @@ fn prefix_table (needle: str) -> std::map::map<uint, uint> {
    assert 0u < lim;
 
    // step to larger suffixes
-   let sii = lim - 1u;
-   while sii > 0u {
+   let sii = 0u;
+   while sii < lim {
       //assert      lim-sii    < lim;
       //assert 0u <= lim-sii-1u;
 
@@ -155,13 +155,26 @@ fn prefix_table (needle: str) -> std::map::map<uint, uint> {
          let msg = ("<"+suffix+"("+#fmt("%u",sii)+") × "+prefix+"("+#fmt("%u",pii)+")>");
          std::io::println(msg);
 
-         if     str::ends_with(prefix, suffix)
+         // suffix might be fully matched
+         if str::ends_with(prefix, suffix)
             && !str::ends_with(prefix, suffix_plus)
             &&  slen < plen 
          {
-            if !mm.contains_key(sii) {
-               mm.insert(sii, pii);
-               std::io::println(#fmt("%u => %u",sii, pii));
+            if !mm.contains_key(sii)
+            {
+               mm.insert(sii, lim-pii);
+               std::io::println(#fmt("%u => %u",sii, lim-pii));
+            }
+         }
+
+         // prefix is bigger than suffix, only tail can match
+         if str::len(prefix) <= str::len(suffix)
+            && str::ends_with(suffix, prefix)
+         {
+            if !mm.contains_key(sii)
+            {
+               mm.insert(sii, lim-pii);
+               std::io::println(#fmt("%u => %u",sii, lim-pii));
             }
          }
 
@@ -171,12 +184,12 @@ fn prefix_table (needle: str) -> std::map::map<uint, uint> {
       // no matching prefix
       // i.e., what is the last prefix that was still partially matching,
       // e.g., for suffix "man", the prefix "an" works, and is +6...
-      if ! mm.contains_key(lim - sii) {
-         mm.insert(lim - sii, pii);
-         std::io::println(#fmt("%u => %u",sii, pii));
+      if ! mm.contains_key(sii) {
+         mm.insert(sii, lim-pii);
+         std::io::println(#fmt("%u => %u",sii, lim-pii));
       }
 
-      sii -= 1u;
+      sii += 1u;
    }
 
    ret mm;
@@ -188,7 +201,6 @@ fn test_prefix_table() {
                             //      ... 8
 
    assert 1u == pt.get(0u); //        (n)
-/*
    assert 8u == pt.get(1u); //       (a)n
    assert 3u == pt.get(2u); //      (m)an
    assert 6u == pt.get(3u); //     (n)man
@@ -197,7 +209,6 @@ fn test_prefix_table() {
    assert 6u == pt.get(6u); //  (n)panman
    assert 6u == pt.get(7u); // (a)npanman
    //assert 0u == pt.get(8u); // fail
-*/
 }
 
 ////////////////////////////////////////////////////////////
@@ -215,7 +226,7 @@ fn prefixes(ss: str) -> [str] unsafe {
    ret vv;
 }
 
-//#[test]
+#[test]
 fn test_prefs() {
    assert ["", "a", "ab", "abc", "abcd"] == prefixes("abcd");
 }
@@ -234,7 +245,7 @@ fn suffixes(ss: str) -> [str] unsafe {
    ret vv;
 }
 
-//#[test]
+#[test]
 fn test_sufs() {
    assert ["abcd", "bcd", "cd", "d", ""] == suffixes("abcd");
 }
@@ -243,7 +254,7 @@ fn greaterOf(a: uint, b: uint) -> uint {
    if a > b { ret a; } else { ret b; }
 }
 
-//#[test]
+#[test]
 fn test_greaterOf() {
    assert greaterOf(15u, 17u) == 17u;
    assert greaterOf(17u, 15u) == 17u;
@@ -258,23 +269,23 @@ fn find_bytes_(needle: str, haystack: str) -> option<uint> {
    }
 }
 
-//#[test]
+#[test]
 fn test_findn() {
    assert [] == findn_bytes("banana", "apple pie", 1u);
 }
 
-//#[test]
+#[test]
 fn test_find_bytes_A() {
   // byte positions
   assert (find_bytes_("banana", "apple pie") == option::none);
 }
 
-//#[test]
+#[test]
 fn test_find_bytes_B() {
   assert (find_bytes_("", "") == option::none);
 }
 
-//#[test]
+#[test]
 fn test_find_bytes_C() {
   let data = "ประเทศไทย中华Việt Nam";
 //  assert (find_bytes_("", data)     == option::some( 0u));
