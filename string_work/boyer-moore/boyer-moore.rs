@@ -288,7 +288,7 @@ fn test_findn() {
 }
 
 #[test]
-fn test_find_A() {
+fn test_find_ascii() {
   assert (find_("banana", "apple pie") == option::none);
   assert (find_("", "") == option::none);
   assert (find_("abc", "abcxxxxxx") == option::some(0u));
@@ -300,12 +300,12 @@ fn test_find_A() {
 fn test_find_C() {
   let data = "ประเทศไทย中华Việt Nam";
   assert (find_("", data)     == option::some( 0u));
-  assert (find_("ประเ", data) == option::some( 0u));
 }
 
 #[test]
 fn test_find_D() {
   let data = "ประเทศไทย中华Việt Nam";
+  assert (find_("ประเ", data) == option::some( 0u));
   assert (find_("ะเ", data)   == option::some( 6u));
   assert (find_("中华", data) == option::some(27u));
   assert (find_("ไท华", data) == option::none);
