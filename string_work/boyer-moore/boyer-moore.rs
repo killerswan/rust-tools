@@ -3,24 +3,26 @@
 
 use std;
 
-// Function: findn_bytes
+// Function: findn
 //
 // Boyer-Moore string search, which returns
 // up to `nn` byte positions of matched substrings
-fn findn_bytes (needle: str, haystack: str, nn: uint) -> [uint] {
+fn findn (needle: str, haystack: str, nn: uint) -> [uint] {
 
    let results = [];
 
-   // empties
+   // empty haystack
    if str::len(haystack) == 0u {
       ret results;
    }
 
+   // empty needle
    if str::len(needle) == 0u {
       vec::push(results, 0u);
       ret results;
    }
 
+   // needle too large
    if str::len(haystack) < str::len(needle) {
       ret results;
    }
@@ -39,7 +41,7 @@ fn findn_bytes (needle: str, haystack: str, nn: uint) -> [uint] {
       assert pos < str::len(needle);
 
       alt ct.find(needle[pos] as uint) {
-         option::none { charShift = str::len(needle);}
+         option::none    { charShift = str::len(needle);}
          option::some(x) { charShift = x;}
       }
 
@@ -54,42 +56,52 @@ fn findn_bytes (needle: str, haystack: str, nn: uint) -> [uint] {
          option::some(x) { prefShift = x;}
       }
 
+      std::io::println(#fmt("<charShift: %u, prefShift: %u>", charShift, prefShift));
       ret greaterOf(charShift, prefShift);
    };
 
-   let hii = 0u;
-   let njj = 0u;
+   let outerLim  = str::len(haystack);
+   let windowLim = str::len(needle);
 
-   while hii < str::len(haystack) {
+   // step up through the haystack
+   let outerii = 0u;
+   while outerii < outerLim - windowLim + 1u {
 
-      njj = str::len(needle);
+      // step back through needle
+      let windowii = windowLim;
+      while 0u < windowii
+            && (outerii + (windowii - 1u)) < outerLim  // don't exceed haystack
+      {
+         windowii -= 1u;
 
-      // reverse through needle
-      while 0u < njj {
-         njj -= 1u;
-
-         if njj+hii >= str::len(needle) {
-            ret results;
-         }
+         std::io::println(#fmt("%c@%u =? %c@%u",
+                          needle[windowii] as char,
+                          windowii,
+                          haystack[outerii+windowii] as char,
+                          outerii + windowii));
 
          // if still matching
-         if needle[njj] == haystack[hii+njj] {
+         if needle[windowii] == haystack[outerii+windowii] {
 
             // if full match
-            if njj == 0u {
-               vec::push(results, hii);
-               log(warn, results);
-               if vec::len(results) >= nn { ret results; }
+            if windowii == 0u {
+               std::io::println(#fmt("[pushing %u]", outerii));
+               vec::push(results, outerii);
+
+               if vec::len(results) >= nn {
+                  ret results;
+               } else {
+                  outerii += windowLim;
+               }
             }
 
-            hii += 1u;
 
          // if partial match
          } else {
-            let shift = getShift(njj);
+            let shift = getShift(windowii);
 
-            hii += shift;
-            njj = str::len(needle);
+            outerii += shift;
+            break;
          }
       }
    }
@@ -121,8 +133,7 @@ fn char_table (needle: str) -> std::map::map<uint, uint> {
 #[test]
 fn test_char_table () {
    let ct = char_table("ANPANMAN");
-   assert 1u == ct.get('A' as uint);
-   assert 2u == ct.get('M' as uint);
+   assert 1u == ct.get('A' as uint); assert 2u == ct.get('M' as uint);
    assert 3u == ct.get('N' as uint);
    assert 5u == ct.get('P' as uint);
    assert option::none == ct.find('z' as uint);
@@ -258,8 +269,8 @@ fn test_greaterOf() {
    assert greaterOf(17u, 15u) == 17u;
 }
 
-fn find_bytes_(needle: str, haystack: str) -> option<uint> {
-   let found = findn_bytes(needle, haystack, 1u);
+fn find_(needle: str, haystack: str) -> option<uint> {
+   let found = findn(needle, haystack, 1u);
    
    alt vec::len(found) {
       0u { option::none }
@@ -269,29 +280,35 @@ fn find_bytes_(needle: str, haystack: str) -> option<uint> {
 
 #[test]
 fn test_findn() {
-   assert [] == findn_bytes("banana", "apple pie", 1u);
+   assert [] == findn("banana", "apple pie", 1u);
+  assert (findn("abc", "abcxxxxxx", 1u) == [0u]);
+  assert (findn("abc", "xxxabcxxx", 1u) == [3u]);
+  assert (findn("abc", "xxxxxxabc", 1u) == [6u]);
+  assert (findn("abc", "xxxabcabc", 5u) == [3u, 6u]);
 }
 
 #[test]
-fn test_find_bytes_A() {
-  // byte positions
-  assert (find_bytes_("banana", "apple pie") == option::none);
+fn test_find_A() {
+  assert (find_("banana", "apple pie") == option::none);
+  assert (find_("", "") == option::none);
+  assert (find_("abc", "abcxxxxxx") == option::some(0u));
+  assert (find_("abc", "xxxabcxxx") == option::some(3u));
+  assert (find_("abc", "xxxxxxabc") == option::some(6u));
 }
 
 #[test]
-fn test_find_bytes_B() {
-  assert (find_bytes_("", "") == option::none);
-}
-
-#[test]
-fn test_find_bytes_C() {
+fn test_find_C() {
   let data = "ประเทศไทย中华Việt Nam";
-//  assert (find_bytes_("", data)     == option::some( 0u));
-// PENDING
-  assert (find_bytes_("ประเ", data) == option::some( 0u));
-//  assert (find_bytes_("ะเ", data)   == option::some( 6u));
-//  assert (find_bytes_("中华", data) == option::some(27u));
-//  assert (find_bytes_("ไท华", data) == option::none);
+  assert (find_("", data)     == option::some( 0u));
+  assert (find_("ประเ", data) == option::some( 0u));
+}
+
+#[test]
+fn test_find_D() {
+  let data = "ประเทศไทย中华Việt Nam";
+  assert (find_("ะเ", data)   == option::some( 6u));
+  assert (find_("中华", data) == option::some(27u));
+  assert (find_("ไท华", data) == option::none);
 }
 
 
