@@ -142,8 +142,8 @@ fn test_char_table () {
    assert option::none == ct.find('z' as uint);
 }
 
-// FIXME: generalize this beyond strings
-fn prefix_table (needle: str) -> std::map::map<uint, uint> unsafe {
+fn prefix_table (needle: str) -> std::map::map<uint, uint> {
+   let needle_ = str::bytes(needle);
    let mm: std::map::map<uint, uint> = std::map::new_uint_hash();
 
    // WAIT, HOW IS THIS ALLOWED TO MUTATE mm?
@@ -154,7 +154,7 @@ fn prefix_table (needle: str) -> std::map::map<uint, uint> unsafe {
       }
    };
 
-   let lim   = str::len(needle);
+   let lim   = vec::len(needle_);
    assert 0u < lim;
 
    // step to larger suffixes
@@ -162,9 +162,9 @@ fn prefix_table (needle: str) -> std::map::map<uint, uint> unsafe {
    while sii < lim {
 
       // tail of the needle we seek
-      let suffix      = str::unsafe::slice_bytes(needle, lim - sii,      lim);
-      let suffix_plus = str::unsafe::slice_bytes(needle, lim - sii - 1u, lim);
-      let slen = str::len(suffix);
+      let suffix      = vec::slice(needle_, lim - sii,      lim);
+      let suffix_plus = vec::slice(needle_, lim - sii - 1u, lim);
+      let slen = vec::len(suffix);
 
       // step to smaller prefixes
       let pii = lim - 1u;
@@ -173,7 +173,8 @@ fn prefix_table (needle: str) -> std::map::map<uint, uint> unsafe {
          // a prefix of the needle that might be matched by
          // a partial match of a suffix
          // (which we might want to jump to)
-         let prefix = str::unsafe::slice_bytes(needle, 0u, pii);
+         let prefix = vec::slice(needle_, 0u, pii);
+         let plen = vec::len(prefix);
 
          //let msg  = "<"+suffix+"("+#fmt("%u",sii)+")";
          //let msg2 = prefix+"("+#fmt("%u",pii)+")>";
@@ -183,14 +184,14 @@ fn prefix_table (needle: str) -> std::map::map<uint, uint> unsafe {
 
          // suffix might be fully matched
          let is_suffix_matched =
-            str::ends_with(prefix, suffix)
-            && !str::ends_with(prefix, suffix_plus)
-            &&  slen < str::len(prefix);
+            vec::ends_with(prefix, suffix)
+            && !vec::ends_with(prefix, suffix_plus)
+            &&  slen < plen;
 
          // prefix is bigger than suffix, only tail can match
          let is_suffix_partially_matched = 
-            str::len(prefix) <= str::len(suffix)
-            && str::ends_with(suffix, prefix);
+            plen <= slen
+            && vec::ends_with(suffix, prefix);
 
          if is_suffix_matched || is_suffix_partially_matched {
             fill(sii, lim-pii);
@@ -232,47 +233,6 @@ fn test_prefix_table_utf8() {
    assert 12u == pt.get(3u);
    assert 12u == pt.get(6u);
    assert 12u == pt.get(9u);
-}
-
-////////////////////////////////////////////////////////////
-////////////////////////////////////////////////////////////
-
-// prefixes, smallest first
-fn prefixes(ss: str) -> [str] unsafe {
-   let vv = [];
-
-   vec::push(vv, "");
-   str::chars_iteri(ss) {|ii, _bb|
-      vec::push(vv, str::slice(ss, 0u, ii+1u));
-   }
-
-   ret vv;
-}
-
-#[test]
-fn test_prefs() {
-   assert ["", "a", "ab", "abc", "abcd"] == prefixes("abcd");
-   assert [""] == prefixes("");
-}
-
-
-// suffixes, largest first
-fn suffixes(ss: str) -> [str] unsafe {
-   let vv = [];
-   let lim = str::len(ss);
-
-   str::chars_iteri(ss) {|ii, _bb|
-      vec::push(vv, str::slice(ss, ii, lim));
-   }
-   vec::push(vv, "");
-
-   ret vv;
-}
-
-#[test]
-fn test_sufs() {
-   assert ["abcd", "bcd", "cd", "d", ""] == suffixes("abcd");
-   assert [""] == suffixes("");
 }
 
 fn greaterOf(a: uint, b: uint) -> uint {
