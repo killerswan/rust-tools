@@ -144,6 +144,7 @@ fn test_char_table () {
    assert option::none == ct.find('z' as uint);
 }
 
+// FIXME: generalize this beyond strings
 fn prefix_table (needle: str) -> std::map::map<uint, uint> unsafe {
    let mm: std::map::map<uint, uint> = std::map::new_uint_hash();
 
