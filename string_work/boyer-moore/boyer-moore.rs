@@ -94,13 +94,16 @@ fn findn (needle: str, haystack: str, nn: uint) -> [uint] {
                   outerii += windowLim;
                }
             }
-
-
-         // if partial match
          } else {
-            let shift = getShift(windowii);
+            outerii +=
+               if windowii == windowLim - 1u {
+                  // not matching yet
+                  1u
+               } else {
+                  // partial match
+                  getShift(windowLim - windowii)
+               };
 
-            outerii += shift;
             break;
          }
       }
@@ -133,7 +136,8 @@ fn char_table (needle: str) -> std::map::map<uint, uint> {
 //#[test]
 fn test_char_table () {
    let ct = char_table("ANPANMAN");
-   assert 1u == ct.get('A' as uint); assert 2u == ct.get('M' as uint);
+   assert 1u == ct.get('A' as uint);
+   assert 2u == ct.get('M' as uint);
    assert 3u == ct.get('N' as uint);
    assert 5u == ct.get('P' as uint);
    assert option::none == ct.find('z' as uint);
@@ -290,15 +294,16 @@ fn find_(needle: str, haystack: str) -> option<uint> {
    }
 }
 
-#[test]
+//#[test]
 fn test_findn() {
    assert [] == findn("banana", "apple pie", 1u);
-  assert (findn("abc", "abcxxxxxx", 1u) == [0u]);
-  assert (findn("abc", "xxxabcxxx", 1u) == [3u]);
-  assert (findn("abc", "xxxxxxabc", 1u) == [6u]);
-  assert (findn("abc", "xxxabcabc", 1u) == [3u]);
-  assert (findn("abc", "xxxabcabc", 5u) == [3u, 6u]);
-  assert (findn("abc", "xxxabcxxabc", 5u) == [3u, 8u]);  // aha
+   assert (findn("abc", "abcxxxxxx", 1u) == [0u]);
+   assert (findn("abc", "xxxabcxxx", 1u) == [3u]);
+   assert (findn("abc", "xxxxxxabc", 1u) == [6u]);
+   assert (findn("abc", "xxxabcabc", 1u) == [3u]);
+   assert (findn("abc", "xxxabcabc", 5u) == [3u, 6u]);
+   assert (findn("abc", "xxxabcxabc", 5u) == [3u, 7u]);
+   assert (findn("abc", "xxxabcxxabc", 5u) == [3u, 8u]);
 }
 
 //#[test]
