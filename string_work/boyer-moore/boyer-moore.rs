@@ -297,13 +297,13 @@ fn test_find_ascii() {
 }
 
 #[test]
-fn test_find_C() {
+fn test_find_A() {
   let data = "ประเทศไทย中华Việt Nam";
   assert (find_("", data)     == option::some( 0u));
 }
 
 #[test]
-fn test_find_D() {
+fn test_find_B() {
   let data = "ประเทศไทย中华Việt Nam";
   assert (find_("ประเ", data) == option::some( 0u));
   assert (find_("ะเ", data)   == option::some( 6u));
