@@ -74,10 +74,11 @@ fn findn (needle: str, haystack: str, nn: uint) -> [uint] {
       {
          windowii -= 1u;
 
-         std::io::println(#fmt("%c@%u =? %c@%u",
-                          needle[windowii] as char,
+         //std::io::println(#fmt("%c@%u =? %c@%u",
+         std::io::println(#fmt("%02x.@%u =? %02x.@%u",
+                          needle[windowii] as uint,
                           windowii,
-                          haystack[outerii+windowii] as char,
+                          haystack[outerii+windowii] as uint,
                           outerii + windowii));
 
          // if still matching
@@ -133,7 +134,7 @@ fn char_table (needle: str) -> std::map::map<uint, uint> {
    ret mm;
 }
 
-//#[test]
+#[test]
 fn test_char_table () {
    let ct = char_table("ANPANMAN");
    assert 1u == ct.get('A' as uint);
@@ -208,7 +209,7 @@ fn prefix_table (needle: str) -> std::map::map<uint, uint> unsafe {
    ret mm;
 }
 
-//#[test]
+#[test]
 fn test_prefix_table_ascii() {
    let pt = prefix_table("ANPANMAN");
                             //      ... 8
@@ -224,7 +225,7 @@ fn test_prefix_table_ascii() {
    //assert 0u == pt.get(8u); // fail
 }
 
-//#[test]
+#[test]
 fn test_prefix_table_utf8() {
    let pt = prefix_table("ประเ");
 
@@ -249,7 +250,7 @@ fn prefixes(ss: str) -> [str] unsafe {
    ret vv;
 }
 
-//#[test]
+#[test]
 fn test_prefs() {
    assert ["", "a", "ab", "abc", "abcd"] == prefixes("abcd");
    assert [""] == prefixes("");
@@ -269,7 +270,7 @@ fn suffixes(ss: str) -> [str] unsafe {
    ret vv;
 }
 
-//#[test]
+#[test]
 fn test_sufs() {
    assert ["abcd", "bcd", "cd", "d", ""] == suffixes("abcd");
    assert [""] == suffixes("");
@@ -279,7 +280,7 @@ fn greaterOf(a: uint, b: uint) -> uint {
    if a > b { ret a; } else { ret b; }
 }
 
-//#[test]
+#[test]
 fn test_greaterOf() {
    assert greaterOf(15u, 17u) == 17u;
    assert greaterOf(17u, 15u) == 17u;
@@ -294,7 +295,7 @@ fn find_(needle: str, haystack: str) -> option<uint> {
    }
 }
 
-//#[test]
+#[test]
 fn test_findn() {
    assert [] == findn("banana", "apple pie", 1u);
    assert (findn("abc", "abcxxxxxx", 1u) == [0u]);
@@ -306,7 +307,7 @@ fn test_findn() {
    assert (findn("abc", "xxxabcxxabc", 5u) == [3u, 8u]);
 }
 
-//#[test]
+#[test]
 fn test_find_ascii() {
   assert (find_("banana", "apple pie") == option::none);
   assert (find_("", "") == option::none);
@@ -315,19 +316,18 @@ fn test_find_ascii() {
   assert (find_("abc", "xxxxxxabc") == option::some(6u));
 }
 
-//#[test]
+#[test]
 fn test_find_utf8() {
   let data = "ประเทศไทย中华Việt Nam";
+  assert (find_("ไท华", data) == option::none);
   assert (find_("", data)     == option::some( 0u));
   assert (find_("ประเ", data) == option::some( 0u));
   assert (find_("ะเ", data)   == option::some( 6u));
-  assert (find_("ไท华", data) == option::none);
-}
-
-#[test]
-fn test_find_B() {
-  let data = "ประเทศไทย中华Việt Nam";
-  assert (find_("中华", data) == option::some(30u));
+  assert (find_("ระ", data) == option::some(3u));
+  assert (find_("ศไทย中华", data) == option::some(15u));
+  assert (find_("ไทย中华", data) == option::some(18u));
+  assert (find_("ย中华", data) == option::some(24u));
+  assert (find_("中华", data) == option::some(27u));
 }
 
 
