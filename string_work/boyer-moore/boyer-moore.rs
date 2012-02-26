@@ -290,7 +290,7 @@ fn find_(needle: str, haystack: str) -> option<uint> {
    }
 }
 
-//#[test]
+#[test]
 fn test_findn() {
    assert [] == findn("banana", "apple pie", 1u);
   assert (findn("abc", "abcxxxxxx", 1u) == [0u]);
