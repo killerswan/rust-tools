@@ -11,19 +11,22 @@ fn findn (needle: str, haystack: str, nn: uint) -> [uint] {
 
    let results = [];
 
+   let nlen = str::len(needle);
+   let hlen = str::len(haystack);
+
    // empty haystack
-   if str::len(haystack) == 0u {
+   if hlen == 0u {
       ret results;
    }
 
    // empty needle
-   if str::len(needle) == 0u {
+   if nlen == 0u {
       vec::push(results, 0u);
       ret results;
    }
 
    // needle too large
-   if str::len(haystack) < str::len(needle) {
+   if hlen < nlen {
       ret results;
    }
 
@@ -31,78 +34,73 @@ fn findn (needle: str, haystack: str, nn: uint) -> [uint] {
    let ct = char_table(needle);
    let pt = prefix_table(needle);
 
-
    // simplify the table referencing
    let getShift = fn@(pos: uint) -> uint {
       let charShift, prefShift; // also: ct, pt, needle
 
       assert needle != "";
       assert pos >= 0u;
-      assert pos < str::len(needle);
+      assert pos < nlen;
 
       alt ct.find(needle[pos] as uint) {
-         option::none    { charShift = str::len(needle);}
+         option::none    { charShift = nlen;}
          option::some(x) { charShift = x;}
       }
 
-      let offset = str::len(needle) - pos;
+      let offset = nlen - pos;
 
 
       assert offset >= 0u;
-      assert offset < str::len(needle);
+      assert offset < nlen;
 
       alt pt.find(offset) {
          option::none { fail "something is out of range" }
          option::some(x) { prefShift = x;}
       }
 
-      std::io::println(#fmt("<charShift: %u, prefShift: %u>", charShift, prefShift));
+      //std::io::println(#fmt("<charShift: %u, prefShift: %u>", charShift, prefShift));
       ret greaterOf(charShift, prefShift);
    };
 
-   let outerLim  = str::len(haystack);
-   let windowLim = str::len(needle);
-
    // step up through the haystack
    let outerii = 0u;
-   while outerii < outerLim - windowLim + 1u {
+   while outerii < hlen - nlen + 1u {
 
       // step back through needle
-      let windowii = windowLim;
+      let windowii = nlen;
       while 0u < windowii
-            && (outerii + (windowii - 1u)) < outerLim  // don't exceed haystack
+            && (outerii + (windowii - 1u)) < hlen  // don't exceed haystack
       {
          windowii -= 1u;
 
-         //std::io::println(#fmt("%c@%u =? %c@%u",
-         std::io::println(#fmt("%02x.@%u =? %02x.@%u",
-                          needle[windowii] as uint,
-                          windowii,
-                          haystack[outerii+windowii] as uint,
-                          outerii + windowii));
+         //std::io::println(#fmt("%02x.@%u =? %02x.@%u",
+         //                 needle[windowii] as uint,
+         //                 windowii,
+         //                 haystack[outerii+windowii] as uint,
+         //                 outerii + windowii));
 
          // if still matching
          if needle[windowii] == haystack[outerii+windowii] {
 
             // if full match
             if windowii == 0u {
-               std::io::println(#fmt("[pushing %u]", outerii));
+               //std::io::println(#fmt("[pushing %u]", outerii));
                vec::push(results, outerii);
 
                if vec::len(results) >= nn {
                   ret results;
                } else {
-                  outerii += windowLim;
+                  outerii += nlen;
                }
             }
          } else {
             outerii +=
-               if windowii == windowLim - 1u {
+               if windowii == nlen - 1u {
                   // not matching yet
                   1u
                } else {
-                  // partial match
-                  getShift(windowLim - windowii)
+                  // was partial match
+                  getShift(nlen - windowii)
                };
 
             break;
@@ -152,7 +150,7 @@ fn prefix_table (needle: str) -> std::map::map<uint, uint> unsafe {
    let fill = fn@(kk: uint, vv: uint) {
       if ! mm.contains_key(kk) {
          mm.insert(kk, vv);
-         std::io::println(#fmt("%u => %u", kk, vv));
+         //std::io::println(#fmt("%u => %u", kk, vv));
       }
    };
 
@@ -179,9 +177,9 @@ fn prefix_table (needle: str) -> std::map::map<uint, uint> unsafe {
 
          //let msg  = "<"+suffix+"("+#fmt("%u",sii)+")";
          //let msg2 = prefix+"("+#fmt("%u",pii)+")>";
-         let msg  = "<suf("+#fmt("%u",sii)+")";
-         let msg2 = "pref("+#fmt("%u",pii)+")>";
-         std::io::println(msg + " × " + msg2);
+         //let msg  = "<suf("+#fmt("%u",sii)+")";
+         //let msg2 = "pref("+#fmt("%u",pii)+")>";
+         //std::io::println(msg + " × " + msg2);
 
          // suffix might be fully matched
          let is_suffix_matched =
