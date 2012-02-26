@@ -298,7 +298,7 @@ fn test_findn() {
   assert (findn("abc", "xxxxxxabc", 1u) == [6u]);
   assert (findn("abc", "xxxabcabc", 1u) == [3u]);
   assert (findn("abc", "xxxabcabc", 5u) == [3u, 6u]);
-  assert (findn("abc", "xxxabcxxabc", 5u) == [3u, 8u]);
+  assert (findn("abc", "xxxabcxxabc", 5u) == [3u, 8u]);  // aha
 }
 
 //#[test]
