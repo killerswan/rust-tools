@@ -39,8 +39,8 @@ fn findn (needle: str, haystack: str, nn: uint) -> [uint] {
       let charShift, prefShift; // also: ct, pt, needle
 
       assert needle != "";
-      assert pos >= 0u;
-      assert pos < nlen;
+      assert 0u <= pos;
+      assert       pos < nlen;
 
       alt ct.find(needle[pos] as uint) {
          option::none    { charShift = nlen;}
@@ -49,9 +49,8 @@ fn findn (needle: str, haystack: str, nn: uint) -> [uint] {
 
       let offset = nlen - pos;
 
-
-      assert offset >= 0u;
-      assert offset < nlen;
+      assert 0u <= offset;
+      assert       offset < nlen;
 
       alt pt.find(offset) {
          option::none { fail "something is out of range" }
