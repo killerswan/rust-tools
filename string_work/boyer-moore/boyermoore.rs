@@ -45,11 +45,20 @@ fn findn_str_between (haystack: str, needle: str, nn: uint,
       let charShift = ct[needle[pos] as uint];
       let prefShift = pt[nlen - pos];
 
+      std::io::println(#fmt("<c%u p%u>", charShift, prefShift));
+
       if charShift > prefShift {
          ret charShift;
       } else {
          ret prefShift;
       }
+   };
+
+   let getCharShift = fn@(pos: uint) -> uint {
+      let charShift = ct[needle[pos] as uint];
+      std::io::println(#fmt("<c%u>", charShift));
+
+      ret charShift;
    };
 
    // step up through the haystack
@@ -74,7 +83,7 @@ fn findn_str_between (haystack: str, needle: str, nn: uint,
 
             // if full match
             if windowii == 0u {
-               //std::io::println(#fmt("[pushing %u]", outerii));
+               std::io::println(#fmt("[pushing %u]", outerii));
                vec::push(results, outerii);
 
                if vec::len(results) >= nn {
@@ -87,7 +96,10 @@ fn findn_str_between (haystack: str, needle: str, nn: uint,
             outerii +=
                if windowii == nlen - 1u {
                   // not matching yet
-                  1u
+                  //getCharShift(nlen - windowii)
+                  // PENDING: is this offset wrong?
+                  //          Why does it always return 4 in the utf8_B test?
+                  getCharShift(nlen - windowii)
                } else {
                   // was partial match
                   getShift(nlen - windowii)
@@ -103,7 +115,7 @@ fn findn_str_between (haystack: str, needle: str, nn: uint,
 
 fn char_table (needle: str) -> [uint] {
    let len = str::len(needle);
-   let mm  = vec::init_elt_mut(256u, len);
+   let mm  = vec::init_elt_mut(255u, len);
 
    let jj = len - 1u; // drop the last byte
 
@@ -196,7 +208,7 @@ fn prefix_table (needle: str) -> [uint] {
    ret vec::from_mut(mm);
 }
 
-#[test]
+//#[test]
 fn test_char_table () {
    let ct = char_table("ANPANMAN");
    assert 1u == ct['A' as uint];
@@ -206,7 +218,7 @@ fn test_char_table () {
    assert str::len("ANPANMAN") == ct['z' as uint];
 }
 
-#[test]
+//#[test]
 fn test_prefix_table_ascii() {
    let pt = prefix_table("ANPANMAN");
                             //      ... 8
@@ -222,7 +234,7 @@ fn test_prefix_table_ascii() {
    //assert 0u == pt.get(8u); // fail
 }
 
-#[test]
+//#[test]
 fn test_prefix_table_utf8() {
    let pt = prefix_table("ประเ");
 
@@ -245,7 +257,7 @@ fn find_str_(haystack: str, needle: str) -> option<uint> {
    }
 }
 
-#[test]
+//#[test]
 fn test_findn_str() {
    assert [] == findn_str("banana", "apple pie", 1u);
    assert (findn_str("abcxxxxxx", "abc", 1u) == [0u]);
@@ -257,7 +269,7 @@ fn test_findn_str() {
    assert (findn_str("xxxabcxxabc", "abc", 5u) == [3u, 8u]);
 }
 
-#[test]
+//#[test]
 fn test_find_strX_ascii() {
   assert (find_str_("banana", "apple pie") == option::none);
   assert (find_str_("", "") == option::none);
@@ -266,18 +278,37 @@ fn test_find_strX_ascii() {
   assert (find_str_("xxxxxxabc", "abc") == option::some(6u));
 }
 
-#[test]
+//#[test]
 fn test_find_strX_utf8() {
   let data = "ประเทศไทย中华Việt Nam";
   assert (find_str_(data, "ไท华") == option::none);
   assert (find_str_(data, "")     == option::some( 0u));
   assert (find_str_(data, "ประเ") == option::some( 0u));
-  assert (find_str_(data, "ะเ")   == option::some( 6u));
   assert (find_str_(data, "ระ") == option::some(3u));
-  assert (find_str_(data, "ศไทย中华") == option::some(15u));
-  assert (find_str_(data, "ไทย中华") == option::some(18u));
   assert (find_str_(data, "ย中华") == option::some(24u));
-  assert (find_str_(data, "中华") == option::some(27u));
+}
+
+#[test]
+fn test_find_strX_utf8_B() {
+// PENDING
+   let data = "ประเทศไทย中华Việt Nam";
+   assert (find_str_(data, "ะเ")   == option::some( 6u));  // why does this shift 4 so much?
+   assert (find_str_(data, "ศไทย中华") == option::some(15u));
+   assert (find_str_(data, "ไทย中华") == option::some(18u));
+   assert (find_str_(data, "中华") == option::some(27u));
+}
+
+#[test]
+fn hmm() {
+   let ct = char_table("ะเ"); //e0b8b0 e0b980
+   assert 2u == ct[0x_e0_u];
+   assert 4u == ct[0x_b8_u];
+   assert 3u == ct[0x_b0_u];
+   assert 2u == ct[0x_e0_u];
+   assert 1u == ct[0x_b9_u];
+   assert 6u == ct[0x_80_u];
+
+   assert 6u == ct["ะเ"[5u]]
 }
 
 
