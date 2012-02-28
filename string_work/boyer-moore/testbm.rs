@@ -19,6 +19,17 @@ fn main() {
    meow::time("bible new", {|| boyermoore::find_str_(bible, phrase)});
 
    let ii = 0u;
+   let N = 100u;
+   let bibleN = "";
+   while ii < N {
+      bibleN += bible;
+      ii += 1u;
+   }
+
+   meow::time("bibleN ref", {|| str::find_str(        bibleN, phrase2)});
+   meow::time("bibleN new", {|| boyermoore::find_str_(bibleN, phrase2)});
+
+   let ii = 0u;
    let N = 1000u;
    let bibleN = "";
    while ii < N {

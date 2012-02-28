@@ -37,27 +37,19 @@ fn findn_str_between (haystack: str, needle: str, nn: uint,
 
    // simplify the table referencing
    let getShift = fn@(pos: uint) -> uint {
-      let charShift, prefShift; // also: ct, pt, needle
-
+/*
       assert needle != "";
       assert 0u <= pos;
       assert       pos < nlen;
+*/
+      let charShift = ct[needle[pos] as uint];
+      let prefShift = pt[nlen - pos];
 
-      charShift = ct[needle[pos] as uint];
-
-      let offset = nlen - pos;
-
-      assert 0u <= offset;
-      assert       offset < nlen;
-
-      prefShift = pt[offset];
-
-      fn greaterOf(a: uint, b: uint) -> uint {
-         if a > b { ret a; } else { ret b; }
+      if charShift > prefShift {
+         ret charShift;
+      } else {
+         ret prefShift;
       }
-
-      //std::io::println(#fmt("<charShift: %u, prefShift: %u>", charShift, prefShift));
-      ret greaterOf(charShift, prefShift);
    };
 
    // step up through the haystack
