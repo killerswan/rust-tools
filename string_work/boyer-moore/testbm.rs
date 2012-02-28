@@ -15,12 +15,14 @@ fn main() {
 
    meow::time("simple ref", {|| str::find_str(phrase+phrase, phrase)});
    meow::time("simple new", {|| boyermoore::find_str_(phrase+phrase, phrase)});
+
    meow::time("bible ref", {|| str::find_str(bible, phrase)});
    meow::time("bible new", {|| boyermoore::find_str_(bible, phrase)});
 
    let ii = 0u;
-   let N = 100u;
+   let N = 200u;
    let bibleN = "";
+   str::reserve(bibleN, N * str::len(bibleN) + 1u);
    while ii < N {
       bibleN += bible;
       ii += 1u;
@@ -30,8 +32,9 @@ fn main() {
    meow::time("bibleN new", {|| boyermoore::find_str_(bibleN, phrase2)});
 
    let ii = 0u;
-   let N = 1000u;
+   let N = 500u;
    let bibleN = "";
+   str::reserve(bibleN, N * str::len(bibleN) + 1u);
    while ii < N {
       bibleN += bible;
       ii += 1u;
