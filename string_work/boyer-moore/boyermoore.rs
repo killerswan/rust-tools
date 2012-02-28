@@ -3,11 +3,12 @@
 
 use std;
 
-// Function: findn
+// Function: findn_str_between
 //
 // Boyer-Moore string search, which returns
 // up to `nn` byte positions of matched substrings
-fn findn (needle: str, haystack: str, nn: uint) -> [uint] {
+fn findn_str_between (haystack: str, needle: str, nn: uint,
+                      start: uint, end: uint) -> [uint] {
 
    let results = [];
 
@@ -42,19 +43,17 @@ fn findn (needle: str, haystack: str, nn: uint) -> [uint] {
       assert 0u <= pos;
       assert       pos < nlen;
 
-      alt ct.find(needle[pos] as uint) {
-         option::none    { charShift = nlen;}
-         option::some(x) { charShift = x;}
-      }
+      charShift = ct[needle[pos] as uint];
 
       let offset = nlen - pos;
 
       assert 0u <= offset;
       assert       offset < nlen;
 
-      alt pt.find(offset) {
-         option::none { fail "something is out of range" }
-         option::some(x) { prefShift = x;}
+      prefShift = pt[offset];
+
+      fn greaterOf(a: uint, b: uint) -> uint {
+         if a > b { ret a; } else { ret b; }
       }
 
       //std::io::println(#fmt("<charShift: %u, prefShift: %u>", charShift, prefShift));
@@ -62,8 +61,8 @@ fn findn (needle: str, haystack: str, nn: uint) -> [uint] {
    };
 
    // step up through the haystack
-   let outerii = 0u;
-   while outerii < hlen - nlen + 1u {
+   let outerii = start;
+   while outerii < end - nlen + 1u {
 
       // step back through needle
       let windowii = nlen;
@@ -110,9 +109,9 @@ fn findn (needle: str, haystack: str, nn: uint) -> [uint] {
    ret results;
 }
 
-fn char_table (needle: str) -> std::map::map<uint, uint> {
-   let mm: std::map::map<uint, uint> = std::map::new_uint_hash();
+fn char_table (needle: str) -> [uint] {
    let len = str::len(needle);
+   let mm  = vec::init_elt_mut(256u, len);
 
    let jj = len - 1u; // drop the last byte
 
@@ -122,39 +121,26 @@ fn char_table (needle: str) -> std::map::map<uint, uint> {
    // from last-1 to first
    while jj > 0u {
       jj -= 1u;
-      if ! mm.contains_key(needle[jj] as uint) {
-         // store reverse indexes
-         mm.insert(needle[jj] as uint, len - 1u - jj);
+
+      let key = needle[jj] as uint;
+
+      // if we haven't set it yet, set it now
+      // (besides default)
+      if mm[key] == len {
+         mm[key] = len - 1u - jj;
       }
    }
 
-   ret mm;
+   ret vec::from_mut(mm);
 }
 
-#[test]
-fn test_char_table () {
-   let ct = char_table("ANPANMAN");
-   assert 1u == ct.get('A' as uint);
-   assert 2u == ct.get('M' as uint);
-   assert 3u == ct.get('N' as uint);
-   assert 5u == ct.get('P' as uint);
-   assert option::none == ct.find('z' as uint);
-}
-
-fn prefix_table (needle: str) -> std::map::map<uint, uint> {
+fn prefix_table (needle: str) -> [uint] {
    let needle_ = str::bytes(needle);
-   let mm: std::map::map<uint, uint> = std::map::new_uint_hash();
-
-   // WAIT, HOW IS THIS ALLOWED TO MUTATE mm?
-   let fill = fn@(kk: uint, vv: uint) {
-      if ! mm.contains_key(kk) {
-         mm.insert(kk, vv);
-         //std::io::println(#fmt("%u => %u", kk, vv));
-      }
-   };
 
    let lim   = vec::len(needle_);
    assert 0u < lim;
+
+   let mm  = vec::init_elt_mut(lim, lim); // FIXME: is this an OK default?
 
    // step to larger suffixes
    let sii = 0u;
@@ -193,19 +179,39 @@ fn prefix_table (needle: str) -> std::map::map<uint, uint> {
             && vec::ends_with(suffix, prefix);
 
          if is_suffix_matched || is_suffix_partially_matched {
-            fill(sii, lim-pii);
+            // if we haven't set it yet, set it now
+            // (besides default)
+            if mm[sii] == lim {
+               mm[sii] = lim-pii;
+               //std::io::println(#fmt("%u => %u", kk, vv));
+            }
          }
 
          pii -= 1u;
       }
 
       // no matching prefix
-      fill(sii, lim-pii);
+      // if we haven't set it yet, set it now
+      // (besides default)
+      if mm[sii] == lim {
+         mm[sii] = lim-pii;
+         //std::io::println(#fmt("%u => %u", kk, vv));
+      }
 
       sii += 1u;
    }
 
-   ret mm;
+   ret vec::from_mut(mm);
+}
+
+#[test]
+fn test_char_table () {
+   let ct = char_table("ANPANMAN");
+   assert 1u == ct['A' as uint];
+   assert 2u == ct['M' as uint];
+   assert 3u == ct['N' as uint];
+   assert 5u == ct['P' as uint];
+   assert str::len("ANPANMAN") == ct['z' as uint];
 }
 
 #[test]
@@ -213,14 +219,14 @@ fn test_prefix_table_ascii() {
    let pt = prefix_table("ANPANMAN");
                             //      ... 8
 
-   assert 1u == pt.get(0u); //        (n)
-   assert 8u == pt.get(1u); //       (a)n
-   assert 3u == pt.get(2u); //      (m)an
-   assert 6u == pt.get(3u); //     (n)man
-   assert 6u == pt.get(4u); //    (a)nman
-   assert 6u == pt.get(5u); //   (p)anman
-   assert 6u == pt.get(6u); //  (n)panman
-   assert 6u == pt.get(7u); // (a)npanman
+   assert 1u == pt[0u]; //        (n)
+   assert 8u == pt[1u]; //       (a)n
+   assert 3u == pt[2u]; //      (m)an
+   assert 6u == pt[3u]; //     (n)man
+   assert 6u == pt[4u]; //    (a)nman
+   assert 6u == pt[5u]; //   (p)anman
+   assert 6u == pt[6u]; //  (n)panman
+   assert 6u == pt[7u]; // (a)npanman
    //assert 0u == pt.get(8u); // fail
 }
 
@@ -228,24 +234,18 @@ fn test_prefix_table_ascii() {
 fn test_prefix_table_utf8() {
    let pt = prefix_table("ประเ");
 
-   assert  1u == pt.get(0u);
-   assert 12u == pt.get(3u);
-   assert 12u == pt.get(6u);
-   assert 12u == pt.get(9u);
+   assert  1u == pt[0u];
+   assert 12u == pt[3u];
+   assert 12u == pt[6u];
+   assert 12u == pt[9u];
 }
 
-fn greaterOf(a: uint, b: uint) -> uint {
-   if a > b { ret a; } else { ret b; }
+fn findn_str(haystack: str, needle: str, nn: uint) -> [uint] {
+   findn_str_between(haystack, needle, nn, 0u, str::len(haystack))
 }
 
-#[test]
-fn test_greaterOf() {
-   assert greaterOf(15u, 17u) == 17u;
-   assert greaterOf(17u, 15u) == 17u;
-}
-
-fn find_(needle: str, haystack: str) -> option<uint> {
-   let found = findn(needle, haystack, 1u);
+fn find_str_(haystack: str, needle: str) -> option<uint> {
+   let found = findn_str(haystack, needle, 1u);
    
    alt vec::len(found) {
       0u { option::none }
@@ -254,38 +254,38 @@ fn find_(needle: str, haystack: str) -> option<uint> {
 }
 
 #[test]
-fn test_findn() {
-   assert [] == findn("banana", "apple pie", 1u);
-   assert (findn("abc", "abcxxxxxx", 1u) == [0u]);
-   assert (findn("abc", "xxxabcxxx", 1u) == [3u]);
-   assert (findn("abc", "xxxxxxabc", 1u) == [6u]);
-   assert (findn("abc", "xxxabcabc", 1u) == [3u]);
-   assert (findn("abc", "xxxabcabc", 5u) == [3u, 6u]);
-   assert (findn("abc", "xxxabcxabc", 5u) == [3u, 7u]);
-   assert (findn("abc", "xxxabcxxabc", 5u) == [3u, 8u]);
+fn test_findn_str() {
+   assert [] == findn_str("banana", "apple pie", 1u);
+   assert (findn_str("abcxxxxxx", "abc", 1u) == [0u]);
+   assert (findn_str("xxxabcxxx", "abc", 1u) == [3u]);
+   assert (findn_str("xxxxxxabc", "abc", 1u) == [6u]);
+   assert (findn_str("xxxabcabc", "abc", 1u) == [3u]);
+   assert (findn_str("xxxabcabc", "abc", 5u) == [3u, 6u]);
+   assert (findn_str("xxxabcxabc", "abc", 5u) == [3u, 7u]);
+   assert (findn_str("xxxabcxxabc", "abc", 5u) == [3u, 8u]);
 }
 
 #[test]
-fn test_find_ascii() {
-  assert (find_("banana", "apple pie") == option::none);
-  assert (find_("", "") == option::none);
-  assert (find_("abc", "abcxxxxxx") == option::some(0u));
-  assert (find_("abc", "xxxabcxxx") == option::some(3u));
-  assert (find_("abc", "xxxxxxabc") == option::some(6u));
+fn test_find_strX_ascii() {
+  assert (find_str_("banana", "apple pie") == option::none);
+  assert (find_str_("", "") == option::none);
+  assert (find_str_("abcxxxxxx", "abc") == option::some(0u));
+  assert (find_str_("xxxabcxxx", "abc") == option::some(3u));
+  assert (find_str_("xxxxxxabc", "abc") == option::some(6u));
 }
 
 #[test]
-fn test_find_utf8() {
+fn test_find_strX_utf8() {
   let data = "ประเทศไทย中华Việt Nam";
-  assert (find_("ไท华", data) == option::none);
-  assert (find_("", data)     == option::some( 0u));
-  assert (find_("ประเ", data) == option::some( 0u));
-  assert (find_("ะเ", data)   == option::some( 6u));
-  assert (find_("ระ", data) == option::some(3u));
-  assert (find_("ศไทย中华", data) == option::some(15u));
-  assert (find_("ไทย中华", data) == option::some(18u));
-  assert (find_("ย中华", data) == option::some(24u));
-  assert (find_("中华", data) == option::some(27u));
+  assert (find_str_(data, "ไท华") == option::none);
+  assert (find_str_(data, "")     == option::some( 0u));
+  assert (find_str_(data, "ประเ") == option::some( 0u));
+  assert (find_str_(data, "ะเ")   == option::some( 6u));
+  assert (find_str_(data, "ระ") == option::some(3u));
+  assert (find_str_(data, "ศไทย中华") == option::some(15u));
+  assert (find_str_(data, "ไทย中华") == option::some(18u));
+  assert (find_str_(data, "ย中华") == option::some(24u));
+  assert (find_str_(data, "中华") == option::some(27u));
 }
 
 

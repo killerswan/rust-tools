@@ -3,7 +3,8 @@
 //
 // WARNING: this is NOT Haskell's QuickCheck or Criterion :D
 
-export time,                  // time one function call
+export bible,                 // read a copy of the lolcat bible
+       time,                  // time one function call
        sample_string,         // provide a sample string < 2048 bytes
        compare,               // compare two functions
        compare_several,       // compare two functions (repeatedly)
@@ -25,6 +26,14 @@ fn sample_string () -> str {
    let random = generator.next();
    let sz = random / u32::max_value * 2048u32;
    ret generator.gen_str(sz as uint);
+}
+
+fn bible() -> str {
+   std::io::println ("Loading the lolcat bible...");
+   let path = "./lolcat/LOLCatBible_2012-01-04.xml";
+   let bible = std::io::read_whole_file (path);
+   let bible_ = str::from_bytes (result::get (bible));
+   ret bible_; //str::slice(bible_, 0u, 20000u);
 }
 
 fn measure_time <XX> (action: fn&()->XX) -> uint {
@@ -82,8 +91,8 @@ fn avgu (ts: [uint]) -> uint {
 // on the same random data
 fn compare_sweep_strings <XX, YY> (
    desc: str,
-   actionA: fn&(str)->XX,
-   actionB: fn&(str)->YY,
+   actionA: fn@(str)->XX,
+   actionB: fn@(str)->YY,
    min_size: uint,
    max_size: uint
 ) {
