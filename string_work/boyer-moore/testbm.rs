@@ -20,7 +20,7 @@ fn main() {
    meow::time("bible new", {|| boyermoore::find_str_(bible, phrase)});
 
    let ii = 0u;
-   let N = 200u;
+   let N = 100u;
    let bibleN = "";
    str::reserve(bibleN, N * str::len(bibleN) + 1u);
    while ii < N {
@@ -32,7 +32,8 @@ fn main() {
    meow::time("bibleN new", {|| boyermoore::find_str_(bibleN, phrase2)});
 
    let ii = 0u;
-   let N = 500u;
+   let N = 300u;
+   //let N = 500u; //faster
    let bibleN = "";
    str::reserve(bibleN, N * str::len(bibleN) + 1u);
    while ii < N {

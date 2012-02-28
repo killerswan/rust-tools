@@ -59,7 +59,7 @@ fn findn_str_between (haystack: str, needle: str, nn: uint,
       // step back through needle
       let windowii = nlen;
       while 0u < windowii
-            && (outerii + (windowii - 1u)) < hlen  // don't exceed haystack
+            && (outerii + windowii - 1u) < hlen  // don't exceed haystack
       {
          windowii -= 1u;
 
