@@ -36,14 +36,9 @@ fn findn_str_between (haystack: str, needle: str, nn: uint,
    let pt = prefix_table(needle);
 
    // simplify the table referencing
-   let getShift = fn@(pos: uint) -> uint {
-/*
-      assert needle != "";
-      assert 0u <= pos;
-      assert       pos < nlen;
-*/
-      let charShift = ct[needle[pos] as uint];
-      let prefShift = pt[nlen - pos];
+   let getShift = fn@(pos: uint, ch: u8) -> uint {
+      let charShift = ct[ch as uint];
+      let prefShift = pt[pos];
 
       std::io::println(#fmt("<c%u p%u>", charShift, prefShift));
 
@@ -54,8 +49,8 @@ fn findn_str_between (haystack: str, needle: str, nn: uint,
       }
    };
 
-   let getCharShift = fn@(pos: uint) -> uint {
-      let charShift = ct[needle[pos] as uint];
+   let getCharShift = fn@(ch: u8) -> uint {
+      let charShift = ct[ch as uint];
       std::io::println(#fmt("<c%u>", charShift));
 
       ret charShift;
@@ -96,13 +91,10 @@ fn findn_str_between (haystack: str, needle: str, nn: uint,
             outerii +=
                if windowii == nlen - 1u {
                   // not matching yet
-                  //getCharShift(nlen - windowii)
-                  // PENDING: is this offset wrong?
-                  //          Why does it always return 4 in the utf8_B test?
-                  getCharShift(nlen - windowii)
+                  getCharShift(haystack[outerii+windowii])
                } else {
                   // was partial match
-                  getShift(nlen - windowii)
+                  getShift(windowii, haystack[outerii+windowii])
                };
 
             break;
@@ -208,7 +200,7 @@ fn prefix_table (needle: str) -> [uint] {
    ret vec::from_mut(mm);
 }
 
-//#[test]
+#[test]
 fn test_char_table () {
    let ct = char_table("ANPANMAN");
    assert 1u == ct['A' as uint];
@@ -218,7 +210,7 @@ fn test_char_table () {
    assert str::len("ANPANMAN") == ct['z' as uint];
 }
 
-//#[test]
+#[test]
 fn test_prefix_table_ascii() {
    let pt = prefix_table("ANPANMAN");
                             //      ... 8
@@ -234,7 +226,7 @@ fn test_prefix_table_ascii() {
    //assert 0u == pt.get(8u); // fail
 }
 
-//#[test]
+#[test]
 fn test_prefix_table_utf8() {
    let pt = prefix_table("ประเ");
 
@@ -257,7 +249,7 @@ fn find_str_(haystack: str, needle: str) -> option<uint> {
    }
 }
 
-//#[test]
+#[test]
 fn test_findn_str() {
    assert [] == findn_str("banana", "apple pie", 1u);
    assert (findn_str("abcxxxxxx", "abc", 1u) == [0u]);
@@ -269,7 +261,7 @@ fn test_findn_str() {
    assert (findn_str("xxxabcxxabc", "abc", 5u) == [3u, 8u]);
 }
 
-//#[test]
+#[test]
 fn test_find_strX_ascii() {
   assert (find_str_("banana", "apple pie") == option::none);
   assert (find_str_("", "") == option::none);
@@ -278,7 +270,7 @@ fn test_find_strX_ascii() {
   assert (find_str_("xxxxxxabc", "abc") == option::some(6u));
 }
 
-//#[test]
+#[test]
 fn test_find_strX_utf8() {
   let data = "ประเทศไทย中华Việt Nam";
   assert (find_str_(data, "ไท华") == option::none);
@@ -292,7 +284,7 @@ fn test_find_strX_utf8() {
 fn test_find_strX_utf8_B() {
 // PENDING
    let data = "ประเทศไทย中华Việt Nam";
-   assert (find_str_(data, "ะเ")   == option::some( 6u));  // why does this shift 4 so much?
+   assert (find_str_(data, "ะเ")   == option::some( 6u));
    assert (find_str_(data, "ศไทย中华") == option::some(15u));
    assert (find_str_(data, "ไทย中华") == option::some(18u));
    assert (find_str_(data, "中华") == option::some(27u));
