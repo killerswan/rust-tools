@@ -36,15 +36,11 @@ fn findn_str_between (haystack: str, needle: str,
    let ct = char_table(needle);
    let pt = prefix_table(needle);
 
-   // query
-   let getCharShift = fn@(ch: u8) -> uint {
-      ret ct[ch as uint];
-   };
-
    // query both
+   // based on position within the needle and character in haystack
    let getShift = fn@(pos: uint, ch: u8) -> uint {
-      let charShift = getCharShift(ch);
-      let prefShift = pt[pos];
+      let charShift = ct[ch as uint];
+      let prefShift = pt[nlen - 1u - pos];
 
       if charShift > prefShift {
          ret charShift;
@@ -64,10 +60,10 @@ fn findn_str_between (haystack: str, needle: str,
       {
          windowii -= 1u;
 
-         // if still matching
          if needle[windowii] == haystack[outerii+windowii] {
+            // still matching
 
-            // if full match
+            // full match?
             if windowii == 0u {
                vec::push(results, outerii);
 
@@ -78,15 +74,9 @@ fn findn_str_between (haystack: str, needle: str,
                }
             }
          } else {
-            outerii +=
-               if windowii == nlen - 1u {
-                  // not matching yet
-                  getCharShift(haystack[outerii+windowii])
-               } else {
-                  // was partial match
-                  getShift(windowii, haystack[outerii+windowii])
-               };
-
+            // not matching yet
+            // was partial match
+            outerii += getShift(windowii, haystack[outerii+windowii]);
             break;
          }
       }
