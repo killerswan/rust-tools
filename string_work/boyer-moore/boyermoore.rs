@@ -7,7 +7,8 @@ use std;
 //
 // Boyer-Moore string search, which returns
 // up to `nn` byte positions of matched substrings
-fn findn_str_between (haystack: str, needle: str, nn: uint,
+fn findn_str_between (haystack: str, needle: str,
+                      nn: uint,
                       start: uint, end: uint) -> [uint] {
 
    let results = [];
@@ -35,25 +36,21 @@ fn findn_str_between (haystack: str, needle: str, nn: uint,
    let ct = char_table(needle);
    let pt = prefix_table(needle);
 
-   // simplify the table referencing
-   let getShift = fn@(pos: uint, ch: u8) -> uint {
-      let charShift = ct[ch as uint];
-      let prefShift = pt[pos];
+   // query
+   let getCharShift = fn@(ch: u8) -> uint {
+      ret ct[ch as uint];
+   };
 
-      std::io::println(#fmt("<c%u p%u>", charShift, prefShift));
+   // query both
+   let getShift = fn@(pos: uint, ch: u8) -> uint {
+      let charShift = getCharShift(ch);
+      let prefShift = pt[pos];
 
       if charShift > prefShift {
          ret charShift;
       } else {
          ret prefShift;
       }
-   };
-
-   let getCharShift = fn@(ch: u8) -> uint {
-      let charShift = ct[ch as uint];
-      std::io::println(#fmt("<c%u>", charShift));
-
-      ret charShift;
    };
 
    // step up through the haystack
@@ -67,18 +64,11 @@ fn findn_str_between (haystack: str, needle: str, nn: uint,
       {
          windowii -= 1u;
 
-         //std::io::println(#fmt("%02x.@%u =? %02x.@%u",
-         //                 needle[windowii] as uint,
-         //                 windowii,
-         //                 haystack[outerii+windowii] as uint,
-         //                 outerii + windowii));
-
          // if still matching
          if needle[windowii] == haystack[outerii+windowii] {
 
             // if full match
             if windowii == 0u {
-               std::io::println(#fmt("[pushing %u]", outerii));
                vec::push(results, outerii);
 
                if vec::len(results) >= nn {
@@ -133,22 +123,23 @@ fn char_table (needle: str) -> [uint] {
 fn prefix_table (needle: str) -> [uint] {
    let needle_ = str::bytes(needle);
 
-   let lim   = vec::len(needle_);
-   assert 0u < lim;
+   let len   = vec::len(needle_);
+   assert 0u < len;
 
-   let mm  = vec::init_elt_mut(lim, lim); // FIXME: is this an OK default?
+   // initialize len chars to len
+   let mm  = vec::init_elt_mut(len, len);
 
    // step to larger suffixes
    let sii = 0u;
-   while sii < lim {
+   while sii < len {
 
       // tail of the needle we seek
-      let suffix      = vec::slice(needle_, lim - sii,      lim);
-      let suffix_plus = vec::slice(needle_, lim - sii - 1u, lim);
+      let suffix      = vec::slice(needle_, len - sii,      len);
+      let suffix_plus = vec::slice(needle_, len - sii - 1u, len);
       let slen = vec::len(suffix);
 
       // step to smaller prefixes
-      let pii = lim - 1u;
+      let pii = len - 1u;
       while pii > 0u {
 
          // a prefix of the needle that might be matched by
@@ -156,12 +147,6 @@ fn prefix_table (needle: str) -> [uint] {
          // (which we might want to jump to)
          let prefix = vec::slice(needle_, 0u, pii);
          let plen = vec::len(prefix);
-
-         //let msg  = "<"+suffix+"("+#fmt("%u",sii)+")";
-         //let msg2 = prefix+"("+#fmt("%u",pii)+")>";
-         //let msg  = "<suf("+#fmt("%u",sii)+")";
-         //let msg2 = "pref("+#fmt("%u",pii)+")>";
-         //std::io::println(msg + " × " + msg2);
 
          // suffix might be fully matched
          let is_suffix_matched =
@@ -177,9 +162,8 @@ fn prefix_table (needle: str) -> [uint] {
          if is_suffix_matched || is_suffix_partially_matched {
             // if we haven't set it yet, set it now
             // (besides default)
-            if mm[sii] == lim {
-               mm[sii] = lim-pii;
-               //std::io::println(#fmt("%u => %u", kk, vv));
+            if mm[sii] == len {
+               mm[sii] = len-pii;
             }
          }
 
@@ -189,9 +173,8 @@ fn prefix_table (needle: str) -> [uint] {
       // no matching prefix
       // if we haven't set it yet, set it now
       // (besides default)
-      if mm[sii] == lim {
-         mm[sii] = lim-pii;
-         //std::io::println(#fmt("%u => %u", kk, vv));
+      if mm[sii] == len {
+         mm[sii] = len-pii;
       }
 
       sii += 1u;
@@ -209,6 +192,19 @@ fn test_char_table () {
    assert 5u == ct['P' as uint];
    assert str::len("ANPANMAN") == ct['z' as uint];
 }
+
+#[test]
+fn test_char_table_utf8() {
+   let ct = char_table("ะเ"); //e0b8b0 e0b980
+   assert 2u == ct[0x_e0_u];
+   assert 4u == ct[0x_b8_u];
+   assert 3u == ct[0x_b0_u];
+   assert 2u == ct[0x_e0_u];
+   assert 1u == ct[0x_b9_u];
+   assert 6u == ct[0x_80_u];
+   assert 6u == ct["ะเ"[5u]]
+}
+
 
 #[test]
 fn test_prefix_table_ascii() {
@@ -288,19 +284,6 @@ fn test_find_strX_utf8_B() {
    assert (find_str_(data, "ศไทย中华") == option::some(15u));
    assert (find_str_(data, "ไทย中华") == option::some(18u));
    assert (find_str_(data, "中华") == option::some(27u));
-}
-
-#[test]
-fn hmm() {
-   let ct = char_table("ะเ"); //e0b8b0 e0b980
-   assert 2u == ct[0x_e0_u];
-   assert 4u == ct[0x_b8_u];
-   assert 3u == ct[0x_b0_u];
-   assert 2u == ct[0x_e0_u];
-   assert 1u == ct[0x_b9_u];
-   assert 6u == ct[0x_80_u];
-
-   assert 6u == ct["ะเ"[5u]]
 }
 
 

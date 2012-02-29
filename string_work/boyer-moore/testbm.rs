@@ -5,7 +5,8 @@ use meow;
 fn main() {
    let bible = meow::bible();
    let phrase = "And leik, dont think ur all hot soup cuz you just read the FAQ.";
-   let phrase2 = "And leik, dont think ur all hot soup cuz you just read the BANANAS.";
+   //let phrase2 = "And leik, dont think ur all hot soup cuz you just read the BANANAS.";
+   let phrase2 = "x-ray-banana";
 
    //let ref = bind str::find_str(_, phrase);
    //let new = bind boyermoore::find_str_(_, phrase);
@@ -20,7 +21,7 @@ fn main() {
    meow::time("bible new", {|| boyermoore::find_str_(bible, phrase)});
 
    let ii = 0u;
-   let N = 100u;
+   let N = 40u;
    let bibleN = "";
    str::reserve(bibleN, N * str::len(bibleN) + 1u);
    while ii < N {
@@ -32,8 +33,19 @@ fn main() {
    meow::time("bibleN new", {|| boyermoore::find_str_(bibleN, phrase2)});
 
    let ii = 0u;
-   let N = 300u;
-   //let N = 500u; //faster
+   let N = 80u;
+   let bibleN = "";
+   str::reserve(bibleN, N * str::len(bibleN) + 1u);
+   while ii < N {
+      bibleN += bible;
+      ii += 1u;
+   }
+
+   meow::time("bibleN ref", {|| str::find_str(        bibleN, phrase2)});
+   meow::time("bibleN new", {|| boyermoore::find_str_(bibleN, phrase2)});
+
+   let ii = 0u;
+   let N = 160u;
    let bibleN = "";
    str::reserve(bibleN, N * str::len(bibleN) + 1u);
    while ii < N {
