@@ -95,6 +95,9 @@ fn findn_str_between (haystack: str, needle: str,
    ret results;
 }
 
+// compute the table used to choose a shift based on
+// an unmatched character's possible position within the search string
+// (a.k.a. the bad-character table)
 fn char_table (needle: str) -> [uint] {
    let len = str::len(needle);
    let mm  = vec::init_elt_mut(255u, len);
@@ -120,6 +123,9 @@ fn char_table (needle: str) -> [uint] {
    ret vec::from_mut(mm);
 }
 
+// compute the table used to choose a shift based on
+// a partially matched suffix of the search string
+// (a.k.a. the good-suffix table)
 fn prefix_table (needle: str) -> [uint] {
    let needle_ = str::bytes(needle);
 
