@@ -63,8 +63,8 @@ fn findn_str_between (haystack: str, needle: str,
          if needle[windowii] == haystack[outerii+windowii] {
             // still matching
 
-            // full match?
             if windowii == 0u {
+               // matched
                vec::push(results, outerii);
 
                if vec::len(results) >= nn {
@@ -74,8 +74,7 @@ fn findn_str_between (haystack: str, needle: str,
                }
             }
          } else {
-            // not matching yet
-            // was partial match
+            // not matching yet or was partial match
             outerii += getShift(windowii, haystack[outerii+windowii]);
             break;
          }
