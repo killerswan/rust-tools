@@ -10,7 +10,6 @@ use std;
 fn findn_str_between (haystack: str, needle: str,
                       nn: uint,
                       start: uint, end: uint) -> [uint] {
-
    let results = [];
 
    let nlen = str::len(needle);
@@ -93,8 +92,8 @@ fn char_table (needle: str) -> [uint] {
 
    let jj = len - 1u; // drop the last byte
 
-   assert jj >= 0u;
-   assert jj < str::len(needle);
+   //assert 0u <= jj;
+   //assert       jj < str::len(needle);
 
    // from last-1 to first
    while jj > 0u {
@@ -115,11 +114,11 @@ fn char_table (needle: str) -> [uint] {
 // compute the table used to choose a shift based on
 // a partially matched suffix of the search string
 // (a.k.a. the good-suffix table)
-fn prefix_table (needle: str) -> [uint] {
-   let needle_ = str::bytes(needle);
+fn prefix_table (needle_str: str) -> [uint] {
+   let needle = str::bytes(needle_str);
 
-   let len   = vec::len(needle_);
-   assert 0u < len;
+   let len   = vec::len(needle);
+   //assert 0u < len;
 
    // initialize len chars to len
    let mm  = vec::init_elt_mut(len, len);
@@ -129,32 +128,29 @@ fn prefix_table (needle: str) -> [uint] {
    while sii < len {
 
       // tail of the needle we seek
-      let suffix      = vec::slice(needle_, len - sii,      len);
-      let suffix_plus = vec::slice(needle_, len - sii - 1u, len);
+      let suffix      = vec::slice(needle, len - sii,      len);
+      let suffix_plus = vec::slice(needle, len - sii - 1u, len);
       let slen = vec::len(suffix);
 
       // step to smaller prefixes
       let pii = len - 1u;
       while pii > 0u {
 
-         // a prefix of the needle that might be matched by
-         // a partial match of a suffix
-         // (which we might want to jump to)
-         let prefix = vec::slice(needle_, 0u, pii);
+         // a prefix of the needle
+         let prefix = vec::slice(needle, 0u, pii);
          let plen = vec::len(prefix);
 
-         // suffix might be fully matched
-         let is_suffix_matched =
-            vec::ends_with(prefix, suffix)
-            && !vec::ends_with(prefix, suffix_plus)
-            &&  slen < plen;
-
-         // prefix is bigger than suffix, only tail can match
-         let is_suffix_partially_matched = 
-            plen <= slen
-            && vec::ends_with(suffix, prefix);
-
-         if is_suffix_matched || is_suffix_partially_matched {
+         // if suffix fully matched, or
+         // prefix is bigger than suffix: only tail matched
+         // (which we might jump to)
+         if
+            (plen <= slen
+             && vec::ends_with(suffix, prefix))
+         ||
+            (slen < plen
+             && vec::ends_with(prefix, suffix)
+             && !vec::ends_with(prefix, suffix_plus))
+         {
             // if we haven't set it yet, set it now
             // (besides default)
             if mm[sii] == len {
@@ -165,9 +161,8 @@ fn prefix_table (needle: str) -> [uint] {
          pii -= 1u;
       }
 
-      // no matching prefix
-      // if we haven't set it yet, set it now
-      // (besides default)
+      // if it hasn't been set, there was no matching prefix,
+      // so set it now
       if mm[sii] == len {
          mm[sii] = len-pii;
       }
@@ -178,33 +173,49 @@ fn prefix_table (needle: str) -> [uint] {
    ret vec::from_mut(mm);
 }
 
+fn findn_str(haystack: str, needle: str, nn: uint) -> [uint] {
+   findn_str_between(haystack, needle, nn, 0u, str::len(haystack))
+}
+
+fn find_str(haystack: str, needle: str) -> option<uint> {
+   let found = findn_str(haystack, needle, 1u);
+   
+   alt vec::len(found) {
+      0u { option::none }
+      xx { option::some(found[0u]) }
+   }
+}
+
 #[test]
 fn test_char_table () {
    let ct = char_table("ANPANMAN");
+
    assert 1u == ct['A' as uint];
    assert 2u == ct['M' as uint];
    assert 3u == ct['N' as uint];
    assert 5u == ct['P' as uint];
-   assert str::len("ANPANMAN") == ct['z' as uint];
+
+   // others
+   assert 8u == ct['z' as uint];
+   assert 8u == ct['w' as uint];
+   assert 8u == ct['x' as uint];
 }
 
 #[test]
 fn test_char_table_utf8() {
    let ct = char_table("ะเ"); //e0b8b0 e0b980
+
    assert 2u == ct[0x_e0_u];
    assert 4u == ct[0x_b8_u];
    assert 3u == ct[0x_b0_u];
    assert 2u == ct[0x_e0_u];
    assert 1u == ct[0x_b9_u];
    assert 6u == ct[0x_80_u];
-   assert 6u == ct["ะเ"[5u]]
 }
-
 
 #[test]
 fn test_prefix_table_ascii() {
    let pt = prefix_table("ANPANMAN");
-                            //      ... 8
 
    assert 1u == pt[0u]; //        (n)
    assert 8u == pt[1u]; //       (a)n
@@ -214,7 +225,6 @@ fn test_prefix_table_ascii() {
    assert 6u == pt[5u]; //   (p)anman
    assert 6u == pt[6u]; //  (n)panman
    assert 6u == pt[7u]; // (a)npanman
-   //assert 0u == pt.get(8u); // fail
 }
 
 #[test]
@@ -227,58 +237,40 @@ fn test_prefix_table_utf8() {
    assert 12u == pt[9u];
 }
 
-fn findn_str(haystack: str, needle: str, nn: uint) -> [uint] {
-   findn_str_between(haystack, needle, nn, 0u, str::len(haystack))
-}
-
-fn find_str_(haystack: str, needle: str) -> option<uint> {
-   let found = findn_str(haystack, needle, 1u);
-   
-   alt vec::len(found) {
-      0u { option::none }
-      xx { option::some(found[0u]) }
-   }
-}
-
 #[test]
 fn test_findn_str() {
-   assert [] == findn_str("banana", "apple pie", 1u);
-   assert (findn_str("abcxxxxxx", "abc", 1u) == [0u]);
-   assert (findn_str("xxxabcxxx", "abc", 1u) == [3u]);
-   assert (findn_str("xxxxxxabc", "abc", 1u) == [6u]);
-   assert (findn_str("xxxabcabc", "abc", 1u) == [3u]);
-   assert (findn_str("xxxabcabc", "abc", 5u) == [3u, 6u]);
-   assert (findn_str("xxxabcxabc", "abc", 5u) == [3u, 7u]);
-   assert (findn_str("xxxabcxxabc", "abc", 5u) == [3u, 8u]);
+   assert []       == findn_str("banana", "apple pie", 1u);
+   assert [0u]     == findn_str("abcxxxxxx", "abc", 1u);
+   assert [3u]     == findn_str("xxxabcxxx", "abc", 1u);
+   assert [6u]     == findn_str("xxxxxxabc", "abc", 1u);
+   assert [3u]     == findn_str("xxxabcabc", "abc", 1u);
+   assert [3u, 6u] == findn_str("xxxabcabc", "abc", 5u);
+   assert [3u, 7u] == findn_str("xxxabcxabc", "abc", 5u);
+   assert [3u, 8u] == findn_str("xxxabcxxabc", "abc", 5u);
 }
 
 #[test]
 fn test_find_strX_ascii() {
-  assert (find_str_("banana", "apple pie") == option::none);
-  assert (find_str_("", "") == option::none);
-  assert (find_str_("abcxxxxxx", "abc") == option::some(0u));
-  assert (find_str_("xxxabcxxx", "abc") == option::some(3u));
-  assert (find_str_("xxxxxxabc", "abc") == option::some(6u));
+   assert option::none     == find_str("", "");
+   assert option::none     == find_str("banana", "apple pie");
+   assert option::some(0u) == find_str("abcxxxxxx", "abc");
+   assert option::some(3u) == find_str("xxxabcxxx", "abc");
+   assert option::some(6u) == find_str("xxxxxxabc", "abc");
 }
 
 #[test]
 fn test_find_strX_utf8() {
-  let data = "ประเทศไทย中华Việt Nam";
-  assert (find_str_(data, "ไท华") == option::none);
-  assert (find_str_(data, "")     == option::some( 0u));
-  assert (find_str_(data, "ประเ") == option::some( 0u));
-  assert (find_str_(data, "ระ") == option::some(3u));
-  assert (find_str_(data, "ย中华") == option::some(24u));
-}
-
-#[test]
-fn test_find_strX_utf8_B() {
-// PENDING
    let data = "ประเทศไทย中华Việt Nam";
-   assert (find_str_(data, "ะเ")   == option::some( 6u));
-   assert (find_str_(data, "ศไทย中华") == option::some(15u));
-   assert (find_str_(data, "ไทย中华") == option::some(18u));
-   assert (find_str_(data, "中华") == option::some(27u));
+
+   assert option::some( 0u) == find_str(data, "");
+   assert option::none      == find_str(data, "ไท华");
+   assert option::some( 0u) == find_str(data, "ประเ");
+   assert option::some( 3u) == find_str(data, "ระ");
+   assert option::some( 6u) == find_str(data, "ะเ");
+   assert option::some(15u) == find_str(data, "ศไทย中华");
+   assert option::some(18u) == find_str(data, "ไทย中华");
+   assert option::some(24u) == find_str(data, "ย中华");
+   assert option::some(27u) == find_str(data, "中华");
 }
 
 

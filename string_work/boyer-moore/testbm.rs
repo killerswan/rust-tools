@@ -9,16 +9,16 @@ fn main() {
    let phrase2 = "x-ray-banana";
 
    //let ref = bind str::find_str(_, phrase);
-   //let new = bind boyermoore::find_str_(_, phrase);
+   //let new = bind boyermoore::find_str(_, phrase);
 
    //meow::compare_sweep_strings("ref^2", ref, ref, 0u, 500000u);
    //meow::compare_sweep_strings("ref vs. new", ref, new, 0u, 500000u);
 
    meow::time("simple ref", {|| str::find_str(phrase+phrase, phrase)});
-   meow::time("simple new", {|| boyermoore::find_str_(phrase+phrase, phrase)});
+   meow::time("simple new", {|| boyermoore::find_str(phrase+phrase, phrase)});
 
    meow::time("bible ref", {|| str::find_str(bible, phrase)});
-   meow::time("bible new", {|| boyermoore::find_str_(bible, phrase)});
+   meow::time("bible new", {|| boyermoore::find_str(bible, phrase)});
 
    let ii = 0u;
    let N = 40u;
@@ -30,7 +30,7 @@ fn main() {
    }
 
    meow::time("bibleN ref", {|| str::find_str(        bibleN, phrase2)});
-   meow::time("bibleN new", {|| boyermoore::find_str_(bibleN, phrase2)});
+   meow::time("bibleN new", {|| boyermoore::find_str(bibleN, phrase2)});
 
    let ii = 0u;
    let N = 80u;
@@ -42,7 +42,7 @@ fn main() {
    }
 
    meow::time("bibleN ref", {|| str::find_str(        bibleN, phrase2)});
-   meow::time("bibleN new", {|| boyermoore::find_str_(bibleN, phrase2)});
+   meow::time("bibleN new", {|| boyermoore::find_str(bibleN, phrase2)});
 
    let ii = 0u;
    let N = 160u;
@@ -54,7 +54,7 @@ fn main() {
    }
 
    meow::time("bibleN ref", {|| str::find_str(        bibleN, phrase2)});
-   meow::time("bibleN new", {|| boyermoore::find_str_(bibleN, phrase2)});
+   meow::time("bibleN new", {|| boyermoore::find_str(bibleN, phrase2)});
 }
 
 
