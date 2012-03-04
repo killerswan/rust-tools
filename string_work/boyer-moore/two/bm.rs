@@ -4,9 +4,11 @@ fn find_str(haystack: str, needle: str) -> option<uint> {
     find_str_between(haystack, needle, 0u, str::len(haystack))
 }
 
+/*
 fn find_str_OLD(haystack: str, needle: str) -> option<uint> {
     find_str_between_OLD(haystack, needle, 0u, str::len(haystack))
 }
+*/
 
 fn find_str_between(haystack: str, needle: str, start: uint, end:uint)
   -> option<uint> {
@@ -25,6 +27,7 @@ fn find_str_between(haystack: str, needle: str, start: uint, end:uint)
 
 // PENDING: this replacement isn't exact...
 // FIXME: DELETE
+/*
 fn find_str_between_OLD(haystack: str, needle: str, start: uint, end:uint)
   -> option<uint> {
 
@@ -35,11 +38,12 @@ fn find_str_between_OLD(haystack: str, needle: str, start: uint, end:uint)
 
     let i = start, e = end - needle_len;
     while i <= e {
-        if match_at(haystack, needle, i) { ret some(i); }
+        if str::match_at(haystack, needle, i) { ret some(i); }
         i += 1u;
     }
     ret none;
 }
+*/
 
 // Function: findn_str
 //
@@ -256,6 +260,6 @@ needle - The string to look for
 fn contains(haystack: str, needle: str) -> bool {
     //option::is_some(find_str_OLD(haystack, needle))
       // PENDING
-    option::is_some(find_str_between_OLD(haystack, needle, 0u, str::len(haystack)))
+    option::is_some(find_str_between(haystack, needle, 0u, str::len(haystack)))
 }
 

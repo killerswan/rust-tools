@@ -3,7 +3,6 @@ use bm;
 
 fn run(result: option<uint>, haystack: str, needle: str, start: uint, end: uint) {
    assert result == bm::find_str_between    (haystack, needle, start, end);
-   assert result == bm::find_str_between_OLD(haystack, needle, start, end);
 }
 
 //#[test]
