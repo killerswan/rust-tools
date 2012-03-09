@@ -1,9 +1,0 @@
-#[link(
-   name = "meow",
-   vers = "1.1",
-   uuid = "a2006d10-9901-47d3-9b5d-b88cf8d3a07a"
-)];
-
-#[crate_type = "lib"];
-
-
