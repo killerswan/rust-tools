@@ -20,15 +20,15 @@ fn compareHN(hlen: uint, nlen: uint) -> float {
    let haystack = generator.gen_str(hlen);
 
    // run each
-   //let sT  = meow::measure_time({|| sim_found = simple(haystack, needle);});
-   //let bmT = meow::measure_time({|| bm_found  = BM(haystack, needle);});
-   let sT  = meow::measure_time({|| simple(haystack, needle)});
-   let bmT = meow::measure_time({|| BM(haystack, needle)});
+   let (sim_val, sim_time)
+      = meow::measure_time_and_value({|| simple(haystack, needle)});
+   let (bm_val, bm_time)
+      = meow::measure_time_and_value({|| BM(haystack, needle)});
 
-   // they've gotta be the same
-   //assert sim_found == bm_found;
-      
-   ret bmT as float / sT as float;
+   assert sim_val == bm_val;
+
+   // return the ratio
+   ret bm_time as float / sim_time as float;
 }
 
 fn main() {
@@ -147,8 +147,8 @@ Nunc eget leo ipsum. Nulla facilisi. Nam adipiscing justo id nisl aliquam at pos
 
 
    // 2D range
-   let (num_n, num_h) = (10u, 20u);
-   let (mult_n, mult_h) = (100u, 1000u);
+   let (num_n, num_h) = (200u, 400u);
+   let (mult_n, mult_h) = (10u, 100u);
    let row1 = vec::to_mut(vec::from_elem(num_h, 1.0f));
    let result = vec::to_mut(vec::from_elem(num_n, row1));
    let mut nn = 0u;
@@ -217,12 +217,12 @@ Nunc eget leo ipsum. Nulla facilisi. Nam adipiscing justo id nisl aliquam at pos
    io::println("haystacks = [" + ys + "];");
    io::println("needles   = [" + xs + "];");
 
-   io::println("contourf(haystacks, needles, ratio, [0, 1, 2, 3]);");
+   io::println("contourf(haystacks, needles, ratio, [0.1 : 0.1 : 10.0]);");
    io::println("xlabel('needle size');");
    io::println("ylabel('haystack size');");
    io::println("title('Boyer-Moore time / basic search time');");
-   io::println("xlim([1 901]);");
-   io::println("ylim([1 19001]);");
+   io::println("xlim([min(needles) max(needles)]);");
+   io::println("ylim([min(haystacks) max(haystacks)]);");
    io::println("colormap('cool');");
    io::println("colorbar;");
    io::println("");
