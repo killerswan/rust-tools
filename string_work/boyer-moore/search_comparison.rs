@@ -223,6 +223,7 @@ Nunc eget leo ipsum. Nulla facilisi. Nam adipiscing justo id nisl aliquam at pos
    io::println("title('Boyer-Moore time / basic search time');");
    io::println("xlim([1 901]);");
    io::println("ylim([1 19001]);");
+   io::println("colormap('cool');");
    io::println("colorbar;");
    io::println("");
    io::println("print('comparison.svg', '-dSVG');");
