@@ -1,1 +1,1 @@
-rustc -O -L /code/meow test.rs
+rustc -O -L /code/meow search_comparison.rs
