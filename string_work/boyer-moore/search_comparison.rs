@@ -28,7 +28,7 @@ fn compareHN(hlen: uint, nlen: uint) -> float {
    assert sim_val == bm_val;
 
    // return the ratio
-   ret bm_time as float / sim_time as float;
+   ret sim_time as float / bm_time as float;
 }
 
 fn main() {
@@ -147,28 +147,29 @@ Nunc eget leo ipsum. Nulla facilisi. Nam adipiscing justo id nisl aliquam at pos
 
 
    // 2D range
-   let (num_n, num_h) = (200u, 400u);
-   let (mult_n, mult_h) = (10u, 100u);
-   let row1 = vec::to_mut(vec::from_elem(num_h, 1.0f));
-   let result = vec::to_mut(vec::from_elem(num_n, row1));
+   let (num_n, num_h) = (100u, 90u);
+   let (mult_n, mult_h) = (4u, 100u);
+   let row1 = vec::to_mut(vec::from_elem(num_n, 1.0f));
+   let result = vec::to_mut(vec::from_elem(num_h, row1));
    let mut nn = 0u;
    while nn < num_n {
       let mut hh = 0u;
       while hh < num_h {
-         // save a grid of ratio of time for BM / simple search
-         result[nn][hh] = compareHN(1u+hh*mult_h, 1u+nn*mult_n);
+         // save a grid of ratio of time
+         result[hh][nn] = compareHN(1u+hh*mult_h, 1u+nn*mult_n);
 
          hh += 1u;
       }
       nn += 1u;
    }
 
+   // data [row\y] [col\x]
    let matlab_data_2d = fn@(data: [mut [mut float]]) -> (str,str,str) {
       // captured:
       //let mult_h, mult_n;
 
-      let xxlim = vec::len(data);
-      let yylim = vec::len(data[0]);
+      let xxlim = vec::len(data[0]);
+      let yylim = vec::len(data);
 
       let mut res = "";
       let mut xs = "";
@@ -179,7 +180,7 @@ Nunc eget leo ipsum. Nulla facilisi. Nam adipiscing justo id nisl aliquam at pos
       while yy < yylim {
          if yy != 0u {
             res += "; ";
-            xs += ", ";
+            ys += ", ";
          }
 
          // X
@@ -188,20 +189,20 @@ Nunc eget leo ipsum. Nulla facilisi. Nam adipiscing justo id nisl aliquam at pos
             if xx != 0u {
                res += ", ";
                if yy == 0u {
-                  ys += ", ";
+                  xs += ", ";
                }
             }
             
             // data
-            res += #fmt("%f", data[xx][yy]);
+            res += #fmt("%f", data[yy][xx]);
 
             if yy == 0u {
-               ys += #fmt("%u", 1u + mult_n * xx);
+               xs += #fmt("%u", 1u + mult_n * xx);
             }
             xx += 1u;
          }
 
-         xs += #fmt("%u", 1u + mult_h * yy);
+         ys += #fmt("%u", 1u + mult_h * yy);
          yy += 1u;
       }
 
@@ -214,13 +215,14 @@ Nunc eget leo ipsum. Nulla facilisi. Nam adipiscing justo id nisl aliquam at pos
    // output to octave/matlab
    let (xs, ys, ratio) = matlab_data_2d(result);
    io::println("ratio     = [" + ratio + "];");
-   io::println("haystacks = [" + ys + "];");
    io::println("needles   = [" + xs + "];");
+   io::println("haystacks = [" + ys + "];");
 
-   io::println("contourf(haystacks, needles, ratio, [0.1 : 0.1 : 10.0]);");
+   io::println("contourf(needles, haystacks, ratio, [0.0 : 0.5 : 10.0]);");
+   io::println("%contourf(needles, haystacks, ratio, [0.1 1.0 2.0]);");
    io::println("xlabel('needle size');");
    io::println("ylabel('haystack size');");
-   io::println("title('Boyer-Moore time / basic search time');");
+   io::println("title('basic search time / Boyer-Moore time');");
    io::println("xlim([min(needles) max(needles)]);");
    io::println("ylim([min(haystacks) max(haystacks)]);");
    io::println("colormap('cool');");
