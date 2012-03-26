@@ -218,8 +218,8 @@ Nunc eget leo ipsum. Nulla facilisi. Nam adipiscing justo id nisl aliquam at pos
    io::println("needles   = [" + xs + "];");
    io::println("haystacks = [" + ys + "];");
 
-   io::println("contourf(needles, haystacks, ratio, [0.0 : 0.5 : 10.0]);");
-   io::println("%contourf(needles, haystacks, ratio, [0.1 1.0 2.0]);");
+   io::println("%contourf(needles, haystacks, ratio, [0.0 : 0.5 : 10.0]);");
+   io::println("contourf(needles, haystacks, ratio, [0.0 : 0.5 :  2.0]);");
    io::println("xlabel('needle size');");
    io::println("ylabel('haystack size');");
    io::println("title('basic search time / Boyer-Moore time');");
