@@ -1,0 +1,24 @@
+# edit
+gvim rust-0.2/mk/install.mk 
+
+# get snapshot
+cd rust-0.2/
+CFG_SRC_DIR=.
+export CFG_SRC_DIR
+mkdir dl
+python ./src/etc/latest-unix-snaps.py 
+
+# save source
+cd ..
+tar -cvzf rust_0.2.orig.tar.gz --exclude debian rust-0.2/
+
+# create and sign the source package
+cd rust-0.2/
+dch -v 0.2-1~oneiric
+debuild -S -sa
+
+# upload
+cd ..
+dput ppa:kevincantu/rust rust_0.2-1~oneiric_source.changes 
+
+
