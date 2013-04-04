@@ -1,0 +1,15 @@
+Source: rust
+Section: devel
+Priority: extra
+Maintainer: Kevin Cantu <me@kevincantu.org>
+Build-Depends: debhelper (>= 7), autotools-dev, curl, python
+Standards-Version: 3.9.2
+Homepage: http://rust-lang.org
+
+Package: rust
+Architecture: any
+Depends: ${shlibs:Depends}, ${misc:Depends}
+Description: Rust programming language
+ This is a compiler and suite of associated libraries and documentation for the Rust programming language.
+
+

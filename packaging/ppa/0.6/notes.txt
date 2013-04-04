@@ -1,0 +1,21 @@
+# get snapshot
+cd rust-0.6/
+CFG_SRC_DIR=.
+export CFG_SRC_DIR
+mkdir dl
+python ./src/etc/latest-unix-snaps.py 
+
+# add a changelog entry
+cd rust-0.6/
+dch -v 0.6-1~quantal
+
+# test
+sudo echo "testing..." && debuild -S -sa && sudo pbuilder build ../rust_0.6-1~quantal.dsc
+
+# upload
+cd ..
+dput ppa:kevincantu/rust rust_0.6-1~quantal_source.changes 
+
+# backport
+dch -v 0.6-1~hardy && debuild -S -sa && cd .. && dput ppa:kevincantu/rust rust_0.6-1~hardy_source.changes && cd rust-0.6
+

@@ -1,0 +1,154 @@
+rust (0.6-2~lucid) lucid; urgency=low
+
+  * backport to Lucid Lynx 10.04
+
+ -- Kevin Cantu <me@kevincantu.org>  Thu, 04 Apr 2013 00:52:07 -0700
+
+rust (0.6-2~hardy) hardy; urgency=low
+
+  * backport to Hardy Heron 8.04
+
+ -- Kevin Cantu <me@kevincantu.org>  Thu, 04 Apr 2013 00:46:56 -0700
+
+rust (0.6-1~raring) raring; urgency=low
+
+  * forwardport to Raring Ringtail 13.04
+
+ -- Kevin Cantu <me@kevincantu.org>  Thu, 04 Apr 2013 00:39:38 -0700
+
+rust (0.6-1~quantal) quantal; urgency=low
+
+  * Release of Rust 0.6!
+
+ -- Kevin Cantu <me@kevincantu.org>  Wed, 03 Apr 2013 21:09:45 -0700
+
+rust (0.5-1~quantal) quantal; urgency=low
+
+  * Release of Rust 0.5!
+
+ -- Kevin Cantu <me@kevincantu.org>  Fri, 21 Dec 2012 19:25:33 -0800
+
+rust (0.4-3~quantal) quantal; urgency=low
+
+  * Fix path of manpage 
+
+ -- Kevin Cantu <me@kevincantu.org>  Tue, 16 Oct 2012 02:12:00 -0700
+
+rust (0.4-3~precise) precise; urgency=low
+
+  * Fix path of manpage
+
+ -- Kevin Cantu <me@kevincantu.org>  Tue, 16 Oct 2012 02:10:11 -0700
+
+rust (0.4-3~oneiric) oneiric; urgency=low
+
+  * Fix path of manpage
+
+ -- Kevin Cantu <me@kevincantu.org>  Tue, 16 Oct 2012 02:07:28 -0700
+
+rust (0.4-3~lucid) lucid; urgency=low
+
+  * Fix path of manpage
+
+ -- Kevin Cantu <me@kevincantu.org>  Tue, 16 Oct 2012 01:44:32 -0700
+
+rust (0.4-2~precise) precise; urgency=low
+
+  * Backport 0.4 
+
+ -- Kevin Cantu <me@kevincantu.org>  Mon, 15 Oct 2012 14:23:34 -0700
+
+rust (0.4-2~oneiric) oneiric; urgency=low
+
+  * Backport 0.4
+
+ -- Kevin Cantu <me@kevincantu.org>  Mon, 15 Oct 2012 14:15:36 -0700
+
+rust (0.4-2~lucid) lucid; urgency=low
+
+  * Backport Rust 0.4 release
+
+ -- Kevin Cantu <me@kevincantu.org>  Mon, 15 Oct 2012 14:07:05 -0700
+
+rust (0.4-1~quantal) quantal; urgency=low
+
+  * Rust 0.4 release!
+
+ -- Kevin Cantu <me@kevincantu.org>  Mon, 15 Oct 2012 13:53:14 -0700
+
+rust (0.3-2~lucid) lucid; urgency=low
+
+  * Backport to lucid 
+
+ -- Kevin Cantu <me@kevincantu.org>  Thu, 12 Jul 2012 23:28:07 -0700
+
+rust (0.3-2~oneiric) oneiric; urgency=low
+
+  * Backport to oneiric 
+
+ -- Kevin Cantu <me@kevincantu.org>  Thu, 12 Jul 2012 23:10:52 -0700
+
+rust (0.3-2~precise) precise; urgency=low
+
+  * The actual release...
+
+ -- Kevin Cantu <me@kevincantu.org>  Thu, 12 Jul 2012 19:08:48 -0700
+
+rust (0.3-1~precise) precise; urgency=low
+
+  * Now bringing you Rust 0.3!
+
+ -- Kevin Cantu <me@kevincantu.org>  Wed, 11 Jul 2012 20:03:25 -0700
+
+rust (0.2-2~precise) precise; urgency=low
+
+  * Package for Ubuntu 12.04 Precise Pangolin
+
+ -- Kevin Cantu <me@kevincantu.org>  Sat, 05 May 2012 15:04:17 -0700
+
+rust (0.2-2~lucid) lucid; urgency=low
+
+  * Forgot to change the debhelper dependency in compat and control
+
+ -- Kevin Cantu <me@kevincantu.org>  Thu, 29 Mar 2012 20:59:35 -0700
+
+rust (0.2-1~lucid) lucid; urgency=low
+
+  * Backport to Lucid
+
+ -- Kevin Cantu <me@kevincantu.org>  Thu, 29 Mar 2012 19:55:47 -0700
+
+rust (0.2-1~oneiric) oneiric; urgency=low
+
+  * Rust 0.2 release!
+    https://mail.mozilla.org/pipermail/rust-dev/2012-March/001511.html
+
+    (Small modifications for this PPA: the rustc manpage should be installed
+    to /usr/share/..., and the source package includes the snapshot.)
+
+ -- Kevin Cantu <me@kevincantu.org>  Thu, 29 Mar 2012 17:33:20 -0700
+
+rust (0.1-2~oneiric) oneiric; urgency=low
+
+  * Bump for the Ubuntu PPA system to realize that I want to re-upload 
+
+ -- Kevin Cantu <me@kevincantu.org>  Fri, 20 Jan 2012 20:44:39 -0800
+
+rust (0.1-1~oneiric) oneiric; urgency=low
+
+  * Rust 0.1 release! See
+    https://mail.mozilla.org/pipermail/rust-dev/2012-January/001256.html.
+
+ -- Kevin Cantu <me@kevincantu.org>  Fri, 20 Jan 2012 20:08:16 -0800
+
+rust (0.093-0~oneiric) oneiric; urgency=low
+
+  * Rust 0.1 pre-release
+
+ -- Kevin Cantu <me@kevincantu.org>  Fri, 20 Jan 2012 00:22:27 -0800
+
+rust (0.092-1~oneiric) oneiric; urgency=low
+
+  * testing a bit better packaging script, building 972f6c17fb007d7c1508e1e8f03c35385f1b841c
+
+ -- Kevin Cantu <me@kevincantu.org>  Mon, 09 Jan 2012 01:49:27 -0800

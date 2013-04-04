@@ -1,5 +1,3 @@
-# edit to fix the manpage path within /usr/share/man
-gvim rust-0.4/mk/install.mk 
 
 # get snapshot
 cd rust-0.4/
@@ -20,5 +18,7 @@ debuild -S -sa
 # upload
 cd ..
 dput ppa:kevincantu/rust rust_0.4-1~oneiric_source.changes 
+
+# repeat for: lucid, oneiric, precise, quantal, ...
 
 
